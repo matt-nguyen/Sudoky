@@ -12,14 +12,13 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 
-class MyApplication: Application() {
+class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
         startKoin {
             androidLogger()
             androidContext(this@MyApplication)
-
 
             modules(
                 featureHomeModule,
@@ -29,11 +28,11 @@ class MyApplication: Application() {
                 dataSudokuRoomModule,
                 dataScannerModule,
                 dataScannerMlKitModule,
-//                module {
-//                    viewModel<MainViewModel> {
-//                        MainViewModel(get())
-//                    }
-//                }
+                //                module {
+                //                    viewModel<MainViewModel> {
+                //                        MainViewModel(get())
+                //                    }
+                //                }
             )
         }
     }

@@ -11,13 +11,11 @@ import com.nghianguyen.domain.model.SudokuGameError
  * @property id The unique identifier for this game.
  * @property cells The list of [DigitCell]s making up the 9x9 grid.
  */
-data class SudokuGame(
-    val id: Long,
-    val cells: List<DigitCell>
-) {
+data class SudokuGame(val id: Long, val cells: List<DigitCell>) {
 
     /**
      * Checks if the game is successfully finished.
+     *
      * @return True if every cell in the grid matches its solution value.
      */
     fun isFinished(): Boolean {
@@ -41,18 +39,16 @@ data class SudokuGame(
         }
 
         val index = cells.indexOfFirst { it.row == row && it.col == col }
-        val targetCell = cells.getOrNull(index)
-            ?: return Err(SudokuGameError.InvalidCoordinate(row, col))
+        val targetCell =
+            cells.getOrNull(index) ?: return Err(SudokuGameError.InvalidCoordinate(row, col))
 
         if (targetCell.isGiven) {
             return Err(SudokuGameError.GivenCellModification(row, col))
         }
 
-        val updatedCells = cells.toMutableList().apply {
-            set(index, targetCell.copy(current = digit))
-        }
+        val updatedCells =
+            cells.toMutableList().apply { set(index, targetCell.copy(current = digit)) }
 
         return Ok(copy(cells = updatedCells))
     }
-
 }

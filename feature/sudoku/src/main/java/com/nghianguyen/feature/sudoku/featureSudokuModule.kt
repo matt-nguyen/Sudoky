@@ -5,7 +5,5 @@ import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val featureSudokuModule = module {
-    viewModel<PlayViewModel> { params ->
-        PlayViewModel(params.get(), get())
-    }
+    viewModel<PlayViewModel> { params -> PlayViewModel(params.get(), get()) }
 }

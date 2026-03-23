@@ -29,7 +29,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -37,17 +37,9 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlin {
-        compilerOptions {
-            jvmTarget = JvmTarget.JVM_11
-        }
-    }
-    buildFeatures {
-        compose = true
-    }
-    room {
-        schemaDirectory("$projectDir/schemas")
-    }
+    kotlin { compilerOptions { jvmTarget = JvmTarget.JVM_11 } }
+    buildFeatures { compose = true }
+    room { schemaDirectory("$projectDir/schemas") }
 }
 
 dependencies {
@@ -65,7 +57,7 @@ dependencies {
 
     implementation(libs.accompanist.permissions)
 
-//    implementation(libs.mlkit.textrecognition)
+    //    implementation(libs.mlkit.textrecognition)
 
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.camera2)

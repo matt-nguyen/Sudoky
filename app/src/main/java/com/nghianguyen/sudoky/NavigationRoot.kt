@@ -22,53 +22,52 @@ import com.nghianguyen.feature.sudoku.nav.Play
 import com.nghianguyen.feature.sudoku.nav.entryPlay
 import com.nghianguyen.feature.sudoku.play.ui.PlayScreenResult
 
-
 @Composable
 fun NavigationRoot(startRoute: NavKey) {
     val rootBackStack = rememberNavBackStack(startRoute)
     NavDisplay(
         backStack = rootBackStack,
         modifier = Modifier.fillMaxSize(),
-        entryDecorators = listOf(
-            rememberSaveableStateHolderNavEntryDecorator(),
-            rememberViewModelStoreNavEntryDecorator()
-        ),
-        entryProvider = entryProvider {
-            entryHome { homeScreenResult ->
-                Log.d("NavigationRoot", "homeScreenResult: $homeScreenResult")
-                when (homeScreenResult) {
-                    HomeScreenResult.ScanSudoku -> {
-                        rootBackStack.add(Scanner)
-                    }
+        entryDecorators =
+            listOf(
+                rememberSaveableStateHolderNavEntryDecorator(),
+                rememberViewModelStoreNavEntryDecorator(),
+            ),
+        entryProvider =
+            entryProvider {
+                entryHome { homeScreenResult ->
+                    Log.d("NavigationRoot", "homeScreenResult: $homeScreenResult")
+                    when (homeScreenResult) {
+                        HomeScreenResult.ScanSudoku -> {
+                            rootBackStack.add(Scanner)
+                        }
 
-                    is HomeScreenResult.ContinueGame -> {
-                        rootBackStack.add(Play(homeScreenResult.gameId))
+                        is HomeScreenResult.ContinueGame -> {
+                            rootBackStack.add(Play(homeScreenResult.gameId))
+                        }
                     }
                 }
-            }
-            entryScanner { scannerNavGraphResult ->
-                Log.d("NavigationRoot", "scannerNavGraphResult: $scannerNavGraphResult")
-                rootBackStack.removeLastOrNull()
+                entryScanner { scannerNavGraphResult ->
+                    Log.d("NavigationRoot", "scannerNavGraphResult: $scannerNavGraphResult")
+                    rootBackStack.removeLastOrNull()
 
-                when (scannerNavGraphResult) {
-                    is ScannerNavGraphResult.ContinueGame -> {
-                        rootBackStack.add(Play(scannerNavGraphResult.gameId))
-                    }
-                    ScannerNavGraphResult.Exit -> { }
-                }
-            }
-            entryPlay { playScreenResult ->
-                Log.d("NavigationRoot", "playScreenResult: $playScreenResult")
-                when (playScreenResult) {
-                    PlayScreenResult.Exit -> {
-                        rootBackStack.removeLastOrNull()
+                    when (scannerNavGraphResult) {
+                        is ScannerNavGraphResult.ContinueGame -> {
+                            rootBackStack.add(Play(scannerNavGraphResult.gameId))
+                        }
+                        ScannerNavGraphResult.Exit -> {}
                     }
                 }
-            }
-        },
+                entryPlay { playScreenResult ->
+                    Log.d("NavigationRoot", "playScreenResult: $playScreenResult")
+                    when (playScreenResult) {
+                        PlayScreenResult.Exit -> {
+                            rootBackStack.removeLastOrNull()
+                        }
+                    }
+                }
+            },
         transitionSpec = { EnterTransition.None togetherWith ExitTransition.None },
-        popTransitionSpec = { EnterTransition.None togetherWith ExitTransition.None }
+        popTransitionSpec = { EnterTransition.None togetherWith ExitTransition.None },
     )
-
 }
-

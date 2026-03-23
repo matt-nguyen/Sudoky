@@ -8,11 +8,7 @@ import com.nghianguyen.sudoku.model.DigitCell
  * @return A [DigitCellItem] with the same digit value, row, and column as the [DigitCell].
  */
 fun DigitCell.toDigitCellItem(): DigitCellItem {
-    return DigitCellItem(
-        digit = current,
-        row = row,
-        col = col
-    )
+    return DigitCellItem(digit = current, row = row, col = col)
 }
 
 /**

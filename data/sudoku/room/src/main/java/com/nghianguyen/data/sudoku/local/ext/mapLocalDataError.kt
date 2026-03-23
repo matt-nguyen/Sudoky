@@ -12,8 +12,7 @@ import kotlinx.coroutines.CancellationException
 fun <V> Result<V, Throwable>.mapLocalDataError(): Result<V, LocalDataError> {
     return mapError {
         Log.e("mapLocalDataError", "Exception captured during operation", error)
-        if (error is CancellationException)
-            throw error
+        if (error is CancellationException) throw error
 
         when (error) {
             is SQLException -> LocalDataError.DATABASE_ERROR

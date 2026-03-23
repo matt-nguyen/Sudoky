@@ -20,21 +20,17 @@ import kotlinx.coroutines.flow.shareIn
  * @param gameId The ID of the Sudoku game to play.
  * @param sudokuGameRepository Repository for accessing and updating Sudoku game data.
  */
-class PlayViewModel(
-    gameId: Long,
-    private val sudokuGameRepository: SudokuGameRepository
-): BaseViewModel<PlayScreenState, PlayAction, PlayEvent>() {
+class PlayViewModel(gameId: Long, private val sudokuGameRepository: SudokuGameRepository) :
+    BaseViewModel<PlayScreenState, PlayAction, PlayEvent>() {
 
     override fun buildInitialState() = PlayScreenState(emptyList())
 
-    private val currentGame = sudokuGameRepository.getGame(gameId)
-        .shareIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5_000),
-            1
-        )
+    private val currentGame =
+        sudokuGameRepository
+            .getGame(gameId)
+            .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 1)
 
-    override fun onStart() {
+    override suspend fun onStart() {
         launch {
             currentGame.collect { gameResult ->
                 gameResult
@@ -47,9 +43,7 @@ class PlayViewModel(
                             sendEvent(PlayEvent.GameFinished)
                         }
                     }
-                    .onFailure {
-                        Log.d("PlayViewModel", "Error getting game: $it")
-                    }
+                    .onFailure { Log.d("PlayViewModel", "Error getting game: $it") }
             }
         }
     }
@@ -67,10 +61,10 @@ class PlayViewModel(
     }
 
     /**
-     * Updates the UI state based on the provided list of [DigitCell]s.
-     * Categorizes cells into given, correct, and incorrect for visual representation.
+     * Updates the UI state based on the provided list of [DigitCell]s. Categorizes cells into
+     * given, correct, and incorrect for visual representation.
      */
-    private fun onDigitCells(digitCells: List<DigitCell>){
+    private fun onDigitCells(digitCells: List<DigitCell>) {
         val givenItems = mutableListOf<DigitCellItem>()
         val correctItems = mutableListOf<DigitCellItem>()
         val incorrectItems = mutableListOf<DigitCellItem>()
@@ -87,21 +81,21 @@ class PlayViewModel(
         updateState {
             copy(
                 digits = digitCells,
-                sudokuGridState = SudokuGridState(
-                    correctItems = correctItems,
-                    incorrectItems = incorrectItems,
-                    givenItems = givenItems
-                )
+                sudokuGridState =
+                    SudokuGridState(
+                        correctItems = correctItems,
+                        incorrectItems = incorrectItems,
+                        givenItems = givenItems,
+                    ),
             )
         }
     }
 
-    /**
-     * Updates the current game with the [digit] entered at the specified [row] and [col].
-     */
+    /** Updates the current game with the [digit] entered at the specified [row] and [col]. */
     private fun enterDigit(digit: Int, row: Int, col: Int) {
         launch {
-            currentGame.firstOrNull()
+            currentGame
+                .firstOrNull()
                 ?.onSuccess { game ->
                     game?.let {
                         it.setDigit(digit, row, col)
@@ -109,30 +103,26 @@ class PlayViewModel(
                             .onFailure { Log.d("PlayViewModel", "Error updating game: $it") }
                     }
                 }
-                ?.onFailure {
-                    Log.d("PlayViewModel", "Error getting game: $it")
-                }
+                ?.onFailure { Log.d("PlayViewModel", "Error getting game: $it") }
         }
     }
 
-    /**
-     * Deletes the current game and notifies the UI to exit the Play screen.
-     */
+    /** Deletes the current game and notifies the UI to exit the Play screen. */
     private fun deleteGameAndExit() {
         launch {
-            currentGame.firstOrNull()
+            currentGame
+                .firstOrNull()
                 ?.onSuccess { game ->
                     game?.let {
-                        sudokuGameRepository.deleteGame(game)
+                        sudokuGameRepository
+                            .deleteGame(game)
                             .onSuccess { Log.d("PlayViewModel", "Game deleted") }
                             .onFailure { Log.d("PlayViewModel", "Error deleting game: $it") }
                     }
 
                     sendEvent(PlayEvent.GameDeleted)
                 }
-                ?.onFailure {
-                    Log.d("PlayViewModel", "Error getting game: $it")
-                }
+                ?.onFailure { Log.d("PlayViewModel", "Error getting game: $it") }
         }
     }
 }

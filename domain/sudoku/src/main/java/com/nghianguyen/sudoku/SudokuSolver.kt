@@ -4,14 +4,12 @@ import android.util.Log
 import com.nghianguyen.sudoku.model.DigitCell
 import com.nghianguyen.sudoku.model.ScannedDigitCell
 
-/**
- * Provides logic for processing scanned Sudoku digits and solving Sudoku puzzles.
- */
+/** Provides logic for processing scanned Sudoku digits and solving Sudoku puzzles. */
 class SudokuSolver {
 
     /**
-     * Converts a list of [ScannedDigitCell]s into a full 9x9 grid of [DigitCell]s.
-     * Cells that were not present in the [scannedDigits] list will be initialized as empty (digit 0).
+     * Converts a list of [ScannedDigitCell]s into a full 9x9 grid of [DigitCell]s. Cells that were
+     * not present in the [scannedDigits] list will be initialized as empty (digit 0).
      *
      * @param scannedDigits The list of digits detected by the scanner.
      * @return A list of 81 [DigitCell]s representing the full Sudoku grid.
@@ -26,7 +24,10 @@ class SudokuSolver {
         for (scannedDigit in scannedDigits) {
             val digit = scannedDigit.digit.toIntOrNull()
             if (digit == null) {
-                Log.d("SudokuSolver", "${scannedDigit.digit} is not a digit, on row ${scannedDigit.row}, col ${scannedDigit.col}")
+                Log.d(
+                    "SudokuSolver",
+                    "${scannedDigit.digit} is not a digit, on row ${scannedDigit.row}, col ${scannedDigit.col}",
+                )
             }
             scanned[scannedDigit.row][scannedDigit.col] = digit ?: 0
         }
@@ -42,7 +43,7 @@ class SudokuSolver {
                         solution = 0,
                         row = row,
                         col = col,
-                        isGiven = digit > 0
+                        isGiven = digit > 0,
                     )
                 )
             }
@@ -52,12 +53,12 @@ class SudokuSolver {
     }
 
     /**
-     * Attempts to solve the provided Sudoku board.
-     * Returns a [Result] containing the list of [DigitCell]s with their [DigitCell.solution] 
-     * property filled if the board is solvable.
+     * Attempts to solve the provided Sudoku board. Returns a [Result] containing the list of
+     * [DigitCell]s with their [DigitCell.solution] property filled if the board is solvable.
      *
      * @param cells The list of 81 cells representing the current state of the board.
-     * @return A [Result] containing the solved list of cells, or a failure if the puzzle is unsolvable.
+     * @return A [Result] containing the solved list of cells, or a failure if the puzzle is
+     *   unsolvable.
      */
     fun solveBoard(cells: List<DigitCell>): Result<List<DigitCell>> {
         return runCatching {
@@ -65,9 +66,7 @@ class SudokuSolver {
 
             // Convert to 2D grid
             val board = Array(9) { IntArray(9) }
-            cells.forEach { cell ->
-                board[cell.row][cell.col] = cell.current
-            }
+            cells.forEach { cell -> board[cell.row][cell.col] = cell.current }
 
             // Solve the puzzle
             val solved = solve(board)
@@ -76,9 +75,7 @@ class SudokuSolver {
             }
 
             // Return updated list with solutionDigit filled
-            cells.map { cell ->
-                cell.copy(solution = board[cell.row][cell.col])
-            }
+            cells.map { cell -> cell.copy(solution = board[cell.row][cell.col]) }
         }
     }
 

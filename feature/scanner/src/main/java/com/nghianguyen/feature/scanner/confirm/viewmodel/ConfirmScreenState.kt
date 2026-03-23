@@ -13,5 +13,5 @@ import com.nghianguyen.ui.component.sudokugrid.SudokuGridState
 data class ConfirmScreenState(
     val digits: List<DigitCell>,
     val sudokuGridState: SudokuGridState,
-    val isValid: Boolean
+    val isValid: Boolean,
 )

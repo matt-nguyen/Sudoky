@@ -16,10 +16,11 @@ data class DigitCell(
     val solution: Int,
     val row: Int,
     val col: Int,
-    val isGiven: Boolean
+    val isGiven: Boolean,
 ) {
     /**
      * Checks if a digit has been entered in this cell.
+     *
      * @return True if [current] is not 0.
      */
     fun hasDigitEntered(): Boolean {
@@ -28,6 +29,7 @@ data class DigitCell(
 
     /**
      * Checks if the currently entered digit matches the solution.
+     *
      * @return True if [current] equals [solution].
      */
     fun isCorrect(): Boolean {

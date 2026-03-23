@@ -53,34 +53,32 @@ fun CameraPreviewScreen(
     state: CameraScreenState,
     event: SharedFlow<CameraEvent>,
     onAction: (CameraAction) -> Unit,
-    onScreenResult: (CameraScreenResult) -> Unit
+    onScreenResult: (CameraScreenResult) -> Unit,
 ) {
     val cameraPermissionState = rememberPermissionState(android.Manifest.permission.CAMERA)
     if (cameraPermissionState.status.isGranted) {
-        CameraPreviewContent(state,event, onAction, onScreenResult)
+        CameraPreviewContent(state, event, onAction, onScreenResult)
     } else {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .wrapContentSize()
-                .widthIn(max = 480.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier.fillMaxSize().wrapContentSize().widthIn(max = 480.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            val textToShow = if (cameraPermissionState.status.shouldShowRationale) {
-                "Camera permission is required to scan Sudoku puzzles."
-            } else {
-                "Please grant camera permission to use the scanner."
-            }
+            val textToShow =
+                if (cameraPermissionState.status.shouldShowRationale) {
+                    "Camera permission is required to scan Sudoku puzzles."
+                } else {
+                    "Please grant camera permission to use the scanner."
+                }
             Text(
                 text = textToShow,
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Spacer(modifier = Modifier.height(LocalSpacing.current.medium))
             OutlinedButton(
                 onClick = { cameraPermissionState.launchPermissionRequest() },
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
             ) {
                 Text("Grant Permission")
             }
@@ -94,39 +92,32 @@ fun CameraPreviewContent(
     state: CameraScreenState,
     event: SharedFlow<CameraEvent>,
     onAction: (CameraAction) -> Unit,
-    onScreenResult: (CameraScreenResult) -> Unit
+    onScreenResult: (CameraScreenResult) -> Unit,
 ) {
 
     val lifeCycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(lifeCycleOwner) {
-        event.flowWithLifecycle(lifeCycleOwner.lifecycle)
-            .collect {
-                when (it) {
-                    is CameraEvent.DigitsScanned -> {
-                        onScreenResult(CameraScreenResult.ScannedDigits(it.scannedDigits))
-                    }
+        event.flowWithLifecycle(lifeCycleOwner.lifecycle).collect {
+            when (it) {
+                is CameraEvent.DigitsScanned -> {
+                    onScreenResult(CameraScreenResult.ScannedDigits(it.scannedDigits))
                 }
             }
+        }
     }
 
     val surfaceRequest = state.surfaceRequest
 
     val lifecycleOwner = LocalLifecycleOwner.current
-    LaunchedEffect(lifecycleOwner) {
-        onAction(CameraAction.BindCamera(lifecycleOwner))
-    }
-    Box(
-        modifier = Modifier.fillMaxSize().background(Color.Black)
-    ) {
+    LaunchedEffect(lifecycleOwner) { onAction(CameraAction.BindCamera(lifecycleOwner)) }
+    Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
         surfaceRequest?.let { request ->
             val coordinateTransformer = remember { MutableCoordinateTransformer() }
             CameraXViewfinder(
                 surfaceRequest = request,
                 coordinateTransformer = coordinateTransformer,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .aspectRatio(1f)
-                    .drawWithContent {
+                modifier =
+                    Modifier.fillMaxSize().aspectRatio(1f).drawWithContent {
                         drawContent()
 
                         // drawing guide grid lines
@@ -135,47 +126,35 @@ fun CameraPreviewContent(
                         val thinWidth = 2f
                         val thickWidth = 5f
                         val lineColor = Color.White.copy(alpha = 0.8f)
-                        
+
                         for (i in 0..9) {
                             val offset = cellSize * i
                             val width = if (i % 3 == 0) thickWidth else thinWidth
-                            
+
                             // Horizontal
-                            drawLine(
-                                lineColor,
-                                Offset(0f, offset),
-                                Offset(fullSize, offset),
-                                width
-                            )
+                            drawLine(lineColor, Offset(0f, offset), Offset(fullSize, offset), width)
                             // Vertical
-                            drawLine(
-                                lineColor,
-                                Offset(offset, 0f),
-                                Offset(offset, fullSize),
-                                width
-                            )
+                            drawLine(lineColor, Offset(offset, 0f), Offset(offset, fullSize), width)
                         }
                     },
-                contentScale = ContentScale.FillWidth
+                contentScale = ContentScale.FillWidth,
             )
             val spacing = LocalSpacing.current
             Column(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = spacing.xLarge),
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = spacing.xLarge),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 IconButton(
-                    modifier = Modifier
-                        .size(80.dp)
-                        .background(MaterialTheme.colorScheme.primary, CircleShape),
-                    onClick = { onAction(CameraAction.CapturePhoto) }
+                    modifier =
+                        Modifier.size(80.dp)
+                            .background(MaterialTheme.colorScheme.primary, CircleShape),
+                    onClick = { onAction(CameraAction.CapturePhoto) },
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.photo_camera_24px),
                         modifier = Modifier.size(36.dp),
                         tint = MaterialTheme.colorScheme.onPrimary,
-                        contentDescription = "Capture"
+                        contentDescription = "Capture",
                     )
                 }
 
@@ -183,17 +162,11 @@ fun CameraPreviewContent(
                 OutlinedButton(
                     onClick = { onScreenResult(CameraScreenResult.Exit) },
                     border = BorderStroke(1.dp, Color.White),
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(8.dp),
                 ) {
-                    Text(
-                        "Cancel",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = Color.White
-                    )
+                    Text("Cancel", style = MaterialTheme.typography.labelLarge, color = Color.White)
                 }
             }
-
         }
     }
-
 }

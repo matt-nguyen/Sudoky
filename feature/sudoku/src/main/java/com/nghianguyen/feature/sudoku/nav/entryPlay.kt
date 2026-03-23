@@ -19,7 +19,7 @@ fun EntryProviderScope<NavKey>.entryPlay(onScreenResult: (PlayScreenResult) -> U
             state = state,
             event = viewModel.uiEvent,
             onAction = viewModel::handleAction,
-            onScreenResult = onScreenResult
+            onScreenResult = onScreenResult,
         )
     }
 }
