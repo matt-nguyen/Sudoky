@@ -11,5 +11,5 @@ import com.nghianguyen.ui.component.sudokugrid.SudokuGridState
  */
 data class PlayScreenState(
     val digits: List<DigitCell>,
-    val sudokuGridState: SudokuGridState = SudokuGridState()
+    val sudokuGridState: SudokuGridState = SudokuGridState(),
 )

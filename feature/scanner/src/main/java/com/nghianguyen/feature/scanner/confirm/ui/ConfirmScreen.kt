@@ -33,38 +33,31 @@ fun ConfirmScreen(
     state: ConfirmScreenState,
     event: SharedFlow<ConfirmEvent>,
     onAction: (ConfirmAction) -> Unit,
-    onScreenResult: (ConfirmScreenResult) -> Unit
+    onScreenResult: (ConfirmScreenResult) -> Unit,
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(lifecycleOwner) {
-        event.flowWithLifecycle(lifecycleOwner.lifecycle)
-            .collect {
-                when (it) {
-                    is ConfirmEvent.ConfirmedGame -> {
-                        onScreenResult(ConfirmedGame(it.gameId))
-                    }
+        event.flowWithLifecycle(lifecycleOwner.lifecycle).collect {
+            when (it) {
+                is ConfirmEvent.ConfirmedGame -> {
+                    onScreenResult(ConfirmedGame(it.gameId))
                 }
             }
+        }
     }
-
 
     val spacing = LocalSpacing.current
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize()
-    ) { paddingValues ->
+    Scaffold(modifier = Modifier.fillMaxSize()) { paddingValues ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(spacing.medium),
+            modifier = Modifier.fillMaxSize().padding(paddingValues).padding(spacing.medium),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(spacing.large)
+            verticalArrangement = Arrangement.spacedBy(spacing.large),
         ) {
             Text(
                 text = "Confirm Puzzle",
                 style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
 
             SudokuGrid(state.sudokuGridState)
@@ -73,7 +66,7 @@ fun ConfirmScreen(
                 Text(
                     text = "Invalid Sudoku grid. Please rescan.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
                 )
             }
 
@@ -81,12 +74,12 @@ fun ConfirmScreen(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(spacing.medium)
+                horizontalArrangement = Arrangement.spacedBy(spacing.medium),
             ) {
                 OutlinedButton(
                     onClick = { onScreenResult(ConfirmScreenResult.Redo) },
                     modifier = Modifier.weight(1f),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                 ) {
                     Text("Redo")
                 }
@@ -95,11 +88,21 @@ fun ConfirmScreen(
                     onClick = { onAction(ConfirmAction.Confirm) },
                     modifier = Modifier.weight(1f),
                     enabled = state.isValid,
-                    border = BorderStroke(1.dp, if (state.isValid) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = if (state.isValid) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface.copy(alpha = 0.12f),
-                        contentColor = if (state.isValid) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                    )
+                    border =
+                        BorderStroke(
+                            1.dp,
+                            if (state.isValid) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
+                        ),
+                    colors =
+                        ButtonDefaults.outlinedButtonColors(
+                            containerColor =
+                                if (state.isValid) MaterialTheme.colorScheme.primaryContainer
+                                else MaterialTheme.colorScheme.surface.copy(alpha = 0.12f),
+                            contentColor =
+                                if (state.isValid) MaterialTheme.colorScheme.onPrimaryContainer
+                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                        ),
                 ) {
                     Text("Confirm")
                 }
@@ -107,7 +110,7 @@ fun ConfirmScreen(
 
             OutlinedButton(
                 onClick = { onScreenResult(ConfirmScreenResult.Exit) },
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
             ) {
                 Text("Exit")
             }

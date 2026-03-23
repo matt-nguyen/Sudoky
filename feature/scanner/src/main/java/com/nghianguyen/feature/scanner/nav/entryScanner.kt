@@ -21,11 +21,14 @@ import com.nghianguyen.feature.scanner.viewmodel.SharedScanViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 sealed interface ScannerNavGraphResult {
-    data class ContinueGame(val gameId: Long): ScannerNavGraphResult
-    data object Exit: ScannerNavGraphResult
+    data class ContinueGame(val gameId: Long) : ScannerNavGraphResult
+
+    data object Exit : ScannerNavGraphResult
 }
 
-fun EntryProviderScope<NavKey>.entryScanner(onScannerNavGraphResult: (ScannerNavGraphResult) -> Unit) {
+fun EntryProviderScope<NavKey>.entryScanner(
+    onScannerNavGraphResult: (ScannerNavGraphResult) -> Unit
+) {
     entry<Scanner> {
         val sharedScanViewModel: SharedScanViewModel = koinViewModel()
 
@@ -33,28 +36,25 @@ fun EntryProviderScope<NavKey>.entryScanner(onScannerNavGraphResult: (ScannerNav
         NavDisplay(
             backStack = scanBackStack,
             modifier = Modifier.fillMaxSize(),
-            entryProvider = entryProvider {
-                entryScannerCamera(scanBackStack, sharedScanViewModel, onScannerNavGraphResult)
-                entryScannerConfirm(scanBackStack, sharedScanViewModel, onScannerNavGraphResult)
-            }
+            entryProvider =
+                entryProvider {
+                    entryScannerCamera(scanBackStack, sharedScanViewModel, onScannerNavGraphResult)
+                    entryScannerConfirm(scanBackStack, sharedScanViewModel, onScannerNavGraphResult)
+                },
         )
-
     }
 }
 
 fun EntryProviderScope<NavKey>.entryScannerCamera(
     scanBackStack: NavBackStack<NavKey>,
     sharedScanViewModel: SharedScanViewModel,
-    onScannerNavGraphResult: (ScannerNavGraphResult) -> Unit
+    onScannerNavGraphResult: (ScannerNavGraphResult) -> Unit,
 ) {
     entry<Scanner.Camera> {
         val viewModel: CameraViewModel = koinViewModel()
         val state by viewModel.uiState.collectAsStateWithLifecycle()
-        CameraPreviewScreen(
-            state,
-            viewModel.uiEvent,
-            viewModel::handleAction
-        ) { cameraScreenResult ->
+        CameraPreviewScreen(state, viewModel.uiEvent, viewModel::handleAction) { cameraScreenResult
+            ->
             when (cameraScreenResult) {
                 is CameraScreenResult.ScannedDigits -> {
                     sharedScanViewModel.setScannedDigits(cameraScreenResult.digits)
@@ -71,16 +71,14 @@ fun EntryProviderScope<NavKey>.entryScannerCamera(
 fun EntryProviderScope<NavKey>.entryScannerConfirm(
     scanBackStack: NavBackStack<NavKey>,
     sharedScanViewModel: SharedScanViewModel,
-    onScannerNavGraphResult: (ScannerNavGraphResult) -> Unit
+    onScannerNavGraphResult: (ScannerNavGraphResult) -> Unit,
 ) {
     entry<Scanner.Confirm> {
         val scannedDigits by sharedScanViewModel.scannedDigits.collectAsStateWithLifecycle()
 
         val confirmViewModel: ConfirmViewModel = koinViewModel()
         val state by confirmViewModel.uiState.collectAsStateWithLifecycle()
-        LaunchedEffect(scannedDigits) {
-            confirmViewModel.setScannedDigits(scannedDigits)
-        }
+        LaunchedEffect(scannedDigits) { confirmViewModel.setScannedDigits(scannedDigits) }
         ConfirmScreen(
             state = state,
             event = confirmViewModel.uiEvent,
@@ -91,13 +89,14 @@ fun EntryProviderScope<NavKey>.entryScannerConfirm(
                     scanBackStack.remove(Scanner.Confirm)
                 }
                 is ConfirmScreenResult.ConfirmedGame -> {
-                    onScannerNavGraphResult(ScannerNavGraphResult.ContinueGame(confirmScreenResult.gameId))
+                    onScannerNavGraphResult(
+                        ScannerNavGraphResult.ContinueGame(confirmScreenResult.gameId)
+                    )
                 }
                 ConfirmScreenResult.Exit -> {
                     onScannerNavGraphResult(ScannerNavGraphResult.Exit)
                 }
             }
         }
-
     }
 }

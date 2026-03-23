@@ -23,26 +23,21 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * Manages CameraX operations for the Sudoku scanner.
- * Handles binding use cases to a lifecycle, providing a surface request for previews,
- * and capturing photos.
+ * Manages CameraX operations for the Sudoku scanner. Handles binding use cases to a lifecycle,
+ * providing a surface request for previews, and capturing photos.
  *
  * @property context Application context.
  * @property imagePreprocessor Utility for preprocessing captured images.
  */
 class CameraManager(
     private val context: Context,
-    private val imagePreprocessor: ImagePreprocessor
+    private val imagePreprocessor: ImagePreprocessor,
 ) {
     private val _surfaceRequest = MutableStateFlow<SurfaceRequest?>(null)
-    /**
-     * Flow emitting [SurfaceRequest]s for the camera preview.
-     */
+    /** Flow emitting [SurfaceRequest]s for the camera preview. */
     val surfaceRequest = _surfaceRequest.asStateFlow()
 
-    /**
-     * Callback triggered when a photo is captured and preprocessed.
-     */
+    /** Callback triggered when a photo is captured and preprocessed. */
     lateinit var onImageCaptured: (Bitmap) -> Unit
 
     private lateinit var imageCaptureUseCase: ImageCapture
@@ -62,7 +57,7 @@ class CameraManager(
         processCameraProvider.bindToLifecycle(
             lifecycleOwner = lifecycleOwner,
             cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA,
-            useCaseGroup = buildUseCaseGroup()
+            useCaseGroup = buildUseCaseGroup(),
         )
 
         try {
@@ -73,8 +68,8 @@ class CameraManager(
     }
 
     /**
-     * Triggers a photo capture. The result will be processed and returned via the
-     * [onImageCaptured] callback.
+     * Triggers a photo capture. The result will be processed and returned via the [onImageCaptured]
+     * callback.
      */
     fun takePicture() {
         imageCaptureUseCase.takePicture(
@@ -82,11 +77,12 @@ class CameraManager(
             object : ImageCapture.OnImageCapturedCallback() {
                 override fun onCaptureSuccess(image: ImageProxy) {
                     super.onCaptureSuccess(image)
-                    val outputBitmap = imagePreprocessor.process(
-                        source = image.toBitmap(),
-                        rotationDegrees = image.imageInfo.rotationDegrees.toFloat(),
-                        targetSizePx = image.height.toFloat()
-                    )
+                    val outputBitmap =
+                        imagePreprocessor.process(
+                            source = image.toBitmap(),
+                            rotationDegrees = image.imageInfo.rotationDegrees.toFloat(),
+                            targetSizePx = image.height.toFloat(),
+                        )
                     onImageCaptured(outputBitmap)
                 }
 
@@ -94,27 +90,27 @@ class CameraManager(
                     super.onError(exception)
                     // TODO handle error
                 }
-            }
+            },
         )
     }
 
     private fun buildUseCaseGroup(): UseCaseGroup {
-        val resolutionSelector = ResolutionSelector.Builder()
-            .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
-            .build()
+        val resolutionSelector =
+            ResolutionSelector.Builder()
+                .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
+                .build()
 
         val previewUseCase = buildPreviewUseCase(resolutionSelector)
         imageCaptureUseCase = buildImageCaptureUseCase(resolutionSelector)
 
-        val viewPort = ViewPort.Builder(
-            Rational(1, 1),
-            previewUseCase.targetRotation
-        )
-            .setScaleType(ViewPort.FILL_CENTER)
-            .build()
+        val viewPort =
+            ViewPort.Builder(Rational(1, 1), previewUseCase.targetRotation)
+                .setScaleType(ViewPort.FILL_CENTER)
+                .build()
 
         return UseCaseGroup.Builder()
-            .addUseCase(previewUseCase).addUseCase(imageCaptureUseCase)
+            .addUseCase(previewUseCase)
+            .addUseCase(imageCaptureUseCase)
             .setViewPort(viewPort)
             .build()
     }
@@ -127,14 +123,8 @@ class CameraManager(
     }
 
     private fun buildPreviewUseCase(resolutionSelector: ResolutionSelector): Preview {
-        return Preview.Builder()
-            .setResolutionSelector(resolutionSelector)
-            .build()
-            .apply {
-                setSurfaceProvider { surfaceRequest ->
-                    _surfaceRequest.value = surfaceRequest
-                }
-            }
+        return Preview.Builder().setResolutionSelector(resolutionSelector).build().apply {
+            setSurfaceProvider { surfaceRequest -> _surfaceRequest.value = surfaceRequest }
+        }
     }
-
 }

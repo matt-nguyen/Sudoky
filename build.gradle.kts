@@ -5,5 +5,13 @@ plugins {
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.compose) apply false
     alias(libs.plugins.ksp) apply false
+    alias(libs.plugins.ktfmt) apply false
     alias(libs.plugins.android.library) apply false
+}
+
+subprojects {
+    apply(plugin = "com.ncorti.ktfmt.gradle")
+    configure<com.ncorti.ktfmt.gradle.KtfmtExtension> {
+        kotlinLangStyle()
+    }
 }

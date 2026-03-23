@@ -9,31 +9,27 @@ import com.nghianguyen.data.sudoku.local.db.dao.GameDao
 import com.nghianguyen.data.sudoku.local.db.entity.CellEntity
 import com.nghianguyen.data.sudoku.local.db.entity.GameEntity
 
-@Database(
-    entities = [CellEntity::class, GameEntity::class],
-    version = 1,
-    exportSchema = true
-)
-abstract class SudokuDatabase: RoomDatabase() {
+@Database(entities = [CellEntity::class, GameEntity::class], version = 1, exportSchema = true)
+abstract class SudokuDatabase : RoomDatabase() {
     abstract fun gameDao(): GameDao
+
     abstract fun cellDao(): CellDao
 
     companion object {
-        @Volatile
-        private var INSTANCE: SudokuDatabase? = null
+        @Volatile private var INSTANCE: SudokuDatabase? = null
 
         fun getInstance(context: Context): SudokuDatabase {
-            return INSTANCE ?: synchronized(this) {
-                INSTANCE ?: Room.databaseBuilder(
-                    context.applicationContext,
-                    SudokuDatabase::class.java,
-                    "sudoku.db"
-                )
-                    .build()
-                    .also {
-                        INSTANCE = it
-                    }
-            }
+            return INSTANCE
+                ?: synchronized(this) {
+                    INSTANCE
+                        ?: Room.databaseBuilder(
+                                context.applicationContext,
+                                SudokuDatabase::class.java,
+                                "sudoku.db",
+                            )
+                            .build()
+                            .also { INSTANCE = it }
+                }
         }
     }
 }

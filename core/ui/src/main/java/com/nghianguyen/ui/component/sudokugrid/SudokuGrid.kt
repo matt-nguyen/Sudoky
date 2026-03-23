@@ -27,18 +27,14 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.sp
 
 /**
- * A Composable that renders a 9x9 Sudoku grid.
- * It displays given digits, correctly entered digits, and incorrectly entered digits
- * with different visual styles. It also supports cell selection.
+ * A Composable that renders a 9x9 Sudoku grid. It displays given digits, correctly entered digits,
+ * and incorrectly entered digits with different visual styles. It also supports cell selection.
  *
  * @param state The current state of the grid, including the digits to display.
  * @param onCellSelected Callback triggered when a cell is tapped, providing the (row, col) indices.
  */
 @Composable
-fun SudokuGrid(
-    state: SudokuGridState,
-    onCellSelected: ((Int, Int) -> Unit)? = null
-) {
+fun SudokuGrid(state: SudokuGridState, onCellSelected: ((Int, Int) -> Unit)? = null) {
     val textMeasurer = rememberTextMeasurer()
     var tapPoint by remember { mutableStateOf<Offset?>(null) }
     var cellSize by remember { mutableFloatStateOf(0f) }
@@ -89,41 +85,45 @@ fun SudokuGrid(
     }
 
     // TODO move 'selectedRowCol' into SudokuGridState
-    val selectedRowCol: Pair<Int, Int>? = remember(tapPoint, cellSize) {
-        tapPoint?.let { tap ->
-            if (cellSize > 0) {
-                Pair(mapCoord(tap.y), mapCoord(tap.x))
-            } else {
-                null
+    val selectedRowCol: Pair<Int, Int>? =
+        remember(tapPoint, cellSize) {
+            tapPoint?.let { tap ->
+                if (cellSize > 0) {
+                    Pair(mapCoord(tap.y), mapCoord(tap.x))
+                } else {
+                    null
+                }
             }
         }
-    }
 
-    val givenDigitTextStyle = MaterialTheme.typography.bodyLarge.copy(
-        fontWeight = FontWeight.Bold,
-        fontSize = 24.sp,
-        color = MaterialTheme.colorScheme.onSurface
-    )
-    val enteredDigitTextStyle = MaterialTheme.typography.bodyLarge.copy(
-        fontSize = 24.sp,
-        color = MaterialTheme.colorScheme.primary
-    )
-    val wrongDigitTextStyle = MaterialTheme.typography.bodyLarge.copy(
-        color = MaterialTheme.colorScheme.onErrorContainer,
-        fontSize = 24.sp
-    )
+    val givenDigitTextStyle =
+        MaterialTheme.typography.bodyLarge.copy(
+            fontWeight = FontWeight.Bold,
+            fontSize = 24.sp,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+    val enteredDigitTextStyle =
+        MaterialTheme.typography.bodyLarge.copy(
+            fontSize = 24.sp,
+            color = MaterialTheme.colorScheme.primary,
+        )
+    val wrongDigitTextStyle =
+        MaterialTheme.typography.bodyLarge.copy(
+            color = MaterialTheme.colorScheme.onErrorContainer,
+            fontSize = 24.sp,
+        )
     val wrongBackgroundColor = MaterialTheme.colorScheme.errorContainer
 
     Box(modifier = Modifier.fillMaxWidth()) {
         Canvas(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(1f)
-                .background(backgroundColor)
-                .align(Alignment.Center)
-                .pointerInput(Unit) {
-                    detectTapGestures { detectedTap -> tapPoint = detectedTap }
-                }
+            modifier =
+                Modifier.fillMaxWidth()
+                    .aspectRatio(1f)
+                    .background(backgroundColor)
+                    .align(Alignment.Center)
+                    .pointerInput(Unit) {
+                        detectTapGestures { detectedTap -> tapPoint = detectedTap }
+                    }
         ) {
             val sideSize = size.width
             val totalLineWidth = 4 * thickWidth + 6 * thinWidth
@@ -136,7 +136,7 @@ fun SudokuGrid(
                 drawRect(
                     color = wrongBackgroundColor,
                     topLeft = Offset(cellCenterX - cellSize / 2, cellCenterY - cellSize / 2),
-                    size = Size(cellSize, cellSize)
+                    size = Size(cellSize, cellSize),
                 )
             }
 
@@ -156,36 +156,22 @@ fun SudokuGrid(
                 val result = textMeasurer.measure(digit.toString(), style)
                 drawText(
                     textLayoutResult = result,
-                    topLeft = Offset(
-                        cellCenterX - result.size.width / 2,
-                        cellCenterY - result.size.height / 2
-                    )
+                    topLeft =
+                        Offset(
+                            cellCenterX - result.size.width / 2,
+                            cellCenterY - result.size.height / 2,
+                        ),
                 )
             }
 
             state.givenItems.forEach { (digit, row, col) ->
-                drawDigit(
-                    digit,
-                    row,
-                    col,
-                    givenDigitTextStyle
-                )
+                drawDigit(digit, row, col, givenDigitTextStyle)
             }
             state.correctItems.forEach { (digit, row, col) ->
-                drawDigit(
-                    digit,
-                    row,
-                    col,
-                    enteredDigitTextStyle
-                )
+                drawDigit(digit, row, col, enteredDigitTextStyle)
             }
             state.incorrectItems.forEach { (digit, row, col) ->
-                drawDigit(
-                    digit,
-                    row,
-                    col,
-                    wrongDigitTextStyle
-                )
+                drawDigit(digit, row, col, wrongDigitTextStyle)
             }
 
             if (onCellSelected != null) {
@@ -195,12 +181,13 @@ fun SudokuGrid(
                     val selectionStrokeWidth = 8f
                     drawRect(
                         color = selectionColor,
-                        topLeft = Offset(
-                            cellCenterX - cellSize / 2 + 4f,
-                            cellCenterY - cellSize / 2 + 4f
-                        ),
+                        topLeft =
+                            Offset(
+                                cellCenterX - cellSize / 2 + 4f,
+                                cellCenterY - cellSize / 2 + 4f,
+                            ),
                         size = Size(cellSize - 8f, cellSize - 8f),
-                        style = Stroke(width = selectionStrokeWidth)
+                        style = Stroke(width = selectionStrokeWidth),
                     )
                 }
             }

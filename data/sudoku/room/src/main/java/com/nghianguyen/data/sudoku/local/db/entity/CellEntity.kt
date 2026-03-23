@@ -9,33 +9,25 @@ import com.nghianguyen.sudoku.model.DigitCell
 
 @Entity(
     tableName = "cell",
-    indices = [
-        Index(name = "unique_game_id_and_row_and_col", value = ["game_id", "row", "col"], unique = true)
-    ],
-    foreignKeys = [
-        ForeignKey(
-            entity = GameEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["game_id"]
-        )
-    ]
+    indices =
+        [
+            Index(
+                name = "unique_game_id_and_row_and_col",
+                value = ["game_id", "row", "col"],
+                unique = true,
+            )
+        ],
+    foreignKeys =
+        [ForeignKey(entity = GameEntity::class, parentColumns = ["id"], childColumns = ["game_id"])],
 )
 data class CellEntity(
-    @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = "id")
-    val id: Long = 0,
-    @ColumnInfo(name = "game_id")
-    val gameId: Long,
-    @ColumnInfo(name = "current")
-    val current: Int,
-    @ColumnInfo(name = "solution")
-    val solution: Int,
-    @ColumnInfo(name = "row")
-    val row: Int,
-    @ColumnInfo(name = "col")
-    val col: Int,
-    @ColumnInfo(name = "is_given")
-    val isGiven: Boolean
+    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Long = 0,
+    @ColumnInfo(name = "game_id") val gameId: Long,
+    @ColumnInfo(name = "current") val current: Int,
+    @ColumnInfo(name = "solution") val solution: Int,
+    @ColumnInfo(name = "row") val row: Int,
+    @ColumnInfo(name = "col") val col: Int,
+    @ColumnInfo(name = "is_given") val isGiven: Boolean,
 )
 
 fun List<CellEntity>.toDomain(): List<DigitCell> {
@@ -49,7 +41,7 @@ fun CellEntity.toDomain(): DigitCell {
         solution = solution,
         row = row,
         col = col,
-        isGiven = isGiven
+        isGiven = isGiven,
     )
 }
 
@@ -65,6 +57,6 @@ fun DigitCell.toEntity(gameId: Long): CellEntity {
         solution = solution,
         row = row,
         col = col,
-        isGiven = isGiven
+        isGiven = isGiven,
     )
 }

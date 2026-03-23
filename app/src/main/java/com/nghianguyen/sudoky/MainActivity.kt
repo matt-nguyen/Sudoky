@@ -19,26 +19,17 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        setContent {
-            SudokuScannerTheme {
-                NavigationRoot(Home)
-            }
-        }
+        setContent { SudokuScannerTheme { NavigationRoot(Home) } }
     }
 }
 
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
+    Text(text = "Hello $name!", modifier = modifier)
 }
 
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
-    SudokuScannerTheme {
-        Greeting("Android")
-    }
+    SudokuScannerTheme { Greeting("Android") }
 }

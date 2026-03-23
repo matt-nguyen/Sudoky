@@ -6,13 +6,9 @@ import com.nghianguyen.sudoku.model.DigitCell
 import com.nghianguyen.sudoku.model.SudokuGame
 import kotlinx.coroutines.flow.Flow
 
-/**
- * Local data source for managing [SudokuGame] data.
- */
+/** Local data source for managing [SudokuGame] data. */
 interface GameLocalDataSource {
-    /**
-     * Returns a list of all games that are currently in progress.
-     */
+    /** Returns a list of all games that are currently in progress. */
     suspend fun getGameInProgress(): Result<List<SudokuGame>, Error>
 
     /**

@@ -12,17 +12,13 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface GameDao {
 
-    @Transaction
-    @Query("SELECT * FROM game")
-    suspend fun getGame(): List<GameWithCells>
+    @Transaction @Query("SELECT * FROM game") suspend fun getGame(): List<GameWithCells>
 
     @Transaction
     @Query("SELECT * FROM game WHERE id = :id")
     fun getGame(id: Long): Flow<GameWithCells?>
 
-    @Insert
-    suspend fun insertGame(entity: GameEntity): Long
+    @Insert suspend fun insertGame(entity: GameEntity): Long
 
-    @Delete
-    suspend fun deleteGame(entity: GameEntity)
+    @Delete suspend fun deleteGame(entity: GameEntity)
 }

@@ -3,6 +3,8 @@ package com.nghianguyen.feature.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
@@ -14,12 +16,10 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 
 /**
- * A base class for all ViewModels in the application.
- * It manages UI state, actions, and one-time events.
+ * A base class for all ViewModels in the application. It manages UI state, actions, and one-time
+ * events.
  *
  * @param STATE The type representing the UI state.
  * @param ACTION The type representing user actions or intents.
@@ -28,49 +28,41 @@ import kotlin.coroutines.EmptyCoroutineContext
 abstract class BaseViewModel<STATE, ACTION, EVENT>() : ViewModel() {
 
     /**
-     * Builds and returns the initial state for the UI.
-     * This is called when the ViewModel is created.
+     * Builds and returns the initial state for the UI. This is called when the ViewModel is
+     * created.
      */
     protected abstract fun buildInitialState(): STATE
 
     /**
-     * Called when the [uiState] flows are first collected.
-     * Use this to trigger any initial data loading or start observing other flows.
+     * Called when the [uiState] flows are first collected. Use this to trigger any initial data
+     * loading or start observing other flows.
      */
-    protected abstract fun onStart()
+    protected abstract suspend fun onStart()
 
     /**
      * Handles an incoming user [ACTION].
+     *
      * @param action The action to be processed.
      */
     abstract fun handleAction(action: ACTION)
 
     private val _uiState = MutableStateFlow(buildInitialState())
 
-    /**
-     * A [kotlinx.coroutines.flow.StateFlow] representing the current UI state.
-     */
-    val uiState = _uiState
-        .onStart { onStart() }
-        .stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5_000),
-            _uiState.value
-        )
+    /** A [kotlinx.coroutines.flow.StateFlow] representing the current UI state. */
+    val uiState =
+        _uiState
+            .onStart { onStart() }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), _uiState.value)
 
     private val _uiEvent = Channel<EVENT>(Channel.BUFFERED)
 
-    /**
-     * A [kotlinx.coroutines.flow.SharedFlow] for one-time events that the UI should react to.
-     */
-    val uiEvent = _uiEvent.receiveAsFlow()
-        .shareIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5_000)
-        )
+    /** A [kotlinx.coroutines.flow.SharedFlow] for one-time events that the UI should react to. */
+    val uiEvent =
+        _uiEvent.receiveAsFlow().shareIn(viewModelScope, SharingStarted.WhileSubscribed(5_000))
 
     /**
      * Updates the current UI state using the provided [updater] function.
+     *
      * @param updater Lambda function to update the current state.
      */
     protected fun updateState(updater: STATE.() -> STATE) {
@@ -79,6 +71,7 @@ abstract class BaseViewModel<STATE, ACTION, EVENT>() : ViewModel() {
 
     /**
      * Dispatches a one-time [EVENT] to the UI.
+     *
      * @param event The event to be sent.
      */
     protected fun sendEvent(event: EVENT) {
@@ -86,20 +79,21 @@ abstract class BaseViewModel<STATE, ACTION, EVENT>() : ViewModel() {
     }
 
     /**
-     * Helper function to launch a coroutine in the [viewModelScope] with a default exception handler.
+     * Helper function to launch a coroutine in the [viewModelScope] with a default exception
+     * handler.
      *
      * @param coroutineContext Optional context to add to the coroutine.
      * @param block The suspend block to execute.
      */
     protected fun launch(
         coroutineContext: CoroutineContext = EmptyCoroutineContext,
-        block: suspend CoroutineScope.() -> Unit
+        block: suspend CoroutineScope.() -> Unit,
     ) {
         viewModelScope.launch(
             context =
                 if (coroutineContext[CoroutineExceptionHandler] != null) coroutineContext
                 else coroutineContext + defaultCoroutineExceptionHandler,
-            block = block
+            block = block,
         )
     }
 

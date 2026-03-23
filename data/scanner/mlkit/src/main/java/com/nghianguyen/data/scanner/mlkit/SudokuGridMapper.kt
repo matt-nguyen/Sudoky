@@ -6,9 +6,9 @@ import com.google.mlkit.vision.text.Text
 import com.nghianguyen.sudoku.model.ScannedDigitCell
 
 /**
- * Responsible for mapping detected text from an image to a 9x9 Sudoku grid.
- * This class calculates the grid cell positions based on the image dimensions and
- * ensures each cell is only occupied by a single detected digit.
+ * Responsible for mapping detected text from an image to a 9x9 Sudoku grid. This class calculates
+ * the grid cell positions based on the image dimensions and ensures each cell is only occupied by a
+ * single detected digit.
  */
 class SudokuGridMapper {
 
@@ -16,8 +16,8 @@ class SudokuGridMapper {
      * Maps the provided [Text] object to a list of [ScannedDigitCell]s.
      *
      * @param text The [Text] detected by ML Kit containing potential Sudoku digits.
-     * @param bitmapHeight The height of the bitmap from which the text was detected.
-     *                     This is used to calculate the size of each Sudoku cell.
+     * @param bitmapHeight The height of the bitmap from which the text was detected. This is used
+     *   to calculate the size of each Sudoku cell.
      * @return A list of [ScannedDigitCell] representing the digits found in the grid.
      */
     fun mapTextToGrid(text: Text, bitmapHeight: Int): List<ScannedDigitCell> {
@@ -45,7 +45,9 @@ class SudokuGridMapper {
                             }
 
                             if (addCellIfNotExists(occupiedCells, row, columnFirst)) {
-                                foundDigits.add(ScannedDigitCell(element.text[0].toString(), row, columnFirst))
+                                foundDigits.add(
+                                    ScannedDigitCell(element.text[0].toString(), row, columnFirst)
+                                )
                             }
 
                             if (addCellIfNotExists(occupiedCells, row, columnSecond)) {
@@ -53,7 +55,7 @@ class SudokuGridMapper {
                                     ScannedDigitCell(
                                         element.text[element.text.length - 1].toString(),
                                         row,
-                                        columnSecond
+                                        columnSecond,
                                     )
                                 )
                             }
@@ -62,7 +64,10 @@ class SudokuGridMapper {
 
                             if (addCellIfNotExists(occupiedCells, row, column)) {
                                 foundDigits.add(ScannedDigitCell(element.text, row, column))
-                                Log.d("SudokuGridMapper", "Single: ${element.text} at row $row, col $column")
+                                Log.d(
+                                    "SudokuGridMapper",
+                                    "Single: ${element.text} at row $row, col $column",
+                                )
                             }
                         }
                     }
@@ -74,11 +79,11 @@ class SudokuGridMapper {
     }
 
     /**
-     * Helper function to add a row and column to the [occupiedCells] tracking map
-     * if the cell hasn't already been filled.
+     * Helper function to add a row and column to the [occupiedCells] tracking map if the cell
+     * hasn't already been filled.
      *
-     * Used to handle the same digit getting detected in multiple [Element]s.
-     * Happens when an [Element] containing multiple digits overlaps with a single digit [Element].
+     * Used to handle the same digit getting detected in multiple [Element]s. Happens when an
+     * [Element] containing multiple digits overlaps with a single digit [Element].
      *
      * @param occupiedCells The map tracking which grid cells are already occupied.
      * @param row The row index (0-8).
@@ -88,10 +93,10 @@ class SudokuGridMapper {
     private fun addCellIfNotExists(
         occupiedCells: MutableMap<Int, MutableList<Int>>,
         row: Int,
-        column: Int
+        column: Int,
     ): Boolean {
         if (row !in 0..8 || column !in 0..8) return false
-        
+
         val columnsForRow = occupiedCells.getOrPut(row) { mutableListOf() }
         if (!columnsForRow.contains(column)) {
             columnsForRow.add(column)

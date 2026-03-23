@@ -45,7 +45,7 @@ fun PlayScreen(
     state: PlayScreenState,
     event: SharedFlow<PlayEvent>,
     onAction: (PlayAction) -> Unit,
-    onScreenResult: (PlayScreenResult) -> Unit
+    onScreenResult: (PlayScreenResult) -> Unit,
 ) {
     var showFinishedDialog by remember { mutableStateOf(false) }
 
@@ -66,16 +66,12 @@ fun PlayScreen(
 
     val spacing = LocalSpacing.current
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize()
-    ) { paddingValues ->
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues)) {
+    Scaffold(modifier = Modifier.fillMaxSize()) { paddingValues ->
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(spacing.medium)
+                verticalArrangement = Arrangement.spacedBy(spacing.medium),
             ) {
                 var selectedRow by remember { mutableIntStateOf(0) }
                 var selectedCol by remember { mutableIntStateOf(0) }
@@ -86,15 +82,14 @@ fun PlayScreen(
                 }
 
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth(0.5f)
-                        .padding(horizontal = spacing.medium),
-                    verticalArrangement = Arrangement.spacedBy(spacing.small)
+                    modifier = Modifier.fillMaxWidth(0.5f).padding(horizontal = spacing.medium),
+                    verticalArrangement = Arrangement.spacedBy(spacing.small),
                 ) {
                     (0..2).forEach { rowIndex ->
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(spacing.small, Alignment.CenterHorizontally)
+                            horizontalArrangement =
+                                Arrangement.spacedBy(spacing.small, Alignment.CenterHorizontally),
                         ) {
                             (1..3).forEach { colIndex ->
                                 val digit = rowIndex * 3 + colIndex
@@ -102,8 +97,14 @@ fun PlayScreen(
                                     text = digit.toString(),
                                     modifier = Modifier.size(64.dp),
                                     onClick = {
-                                        onAction(PlayAction.OnDigitEntered(digit, selectedRow, selectedCol))
-                                    }
+                                        onAction(
+                                            PlayAction.OnDigitEntered(
+                                                digit,
+                                                selectedRow,
+                                                selectedCol,
+                                            )
+                                        )
+                                    },
                                 )
                             }
                         }
@@ -114,42 +115,35 @@ fun PlayScreen(
                         modifier = Modifier.fillMaxWidth(),
                         onClick = {
                             onAction(PlayAction.OnDigitEntered(0, selectedRow, selectedCol))
-                        }
+                        },
                     )
                 }
             }
 
             OutlinedButton(
                 onClick = { onScreenResult(PlayScreenResult.Exit) },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(spacing.large)
-                    .size(56.dp),
+                modifier = Modifier.align(Alignment.BottomEnd).padding(spacing.large).size(56.dp),
                 shape = CircleShape,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                contentPadding = PaddingValues(0.dp)
+                contentPadding = PaddingValues(0.dp),
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Exit",
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(32.dp),
                 )
             }
         }
 
         if (showFinishedDialog) {
-            BasicAlertDialog(
-                onDismissRequest = {
-                    onAction(PlayAction.OnDeleteGame)
-                }
-            ) {
+            BasicAlertDialog(onDismissRequest = { onAction(PlayAction.OnDeleteGame) }) {
                 Card(
                     shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                 ) {
                     Column(
                         modifier = Modifier.padding(spacing.large),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Text(text = "Game Finished!")
                     }

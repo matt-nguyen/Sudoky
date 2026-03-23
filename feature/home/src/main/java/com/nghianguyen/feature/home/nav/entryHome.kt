@@ -18,7 +18,7 @@ fun EntryProviderScope<NavKey>.entryHome(onHomeScreenResult: (HomeScreenResult) 
             state = state,
             event = viewModel.uiEvent,
             onAction = viewModel::handleAction,
-            onHomeScreenResult = onHomeScreenResult
+            onHomeScreenResult = onHomeScreenResult,
         )
     }
 }

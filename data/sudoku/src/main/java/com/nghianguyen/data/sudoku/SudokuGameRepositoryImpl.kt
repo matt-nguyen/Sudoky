@@ -8,9 +8,8 @@ import com.nghianguyen.sudoku.model.DigitCell
 import com.nghianguyen.sudoku.model.SudokuGame
 import kotlinx.coroutines.flow.Flow
 
-class SudokuGameRepositoryImpl(
-    private val localDataSource: GameLocalDataSource
-): SudokuGameRepository {
+class SudokuGameRepositoryImpl(private val localDataSource: GameLocalDataSource) :
+    SudokuGameRepository {
     override suspend fun getGameInProgress(): Result<List<SudokuGame>, Error> {
         Log.d("SudokuGameRepositoryImpl", "getGameInProgress")
         return localDataSource.getGameInProgress()

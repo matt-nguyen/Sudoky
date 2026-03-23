@@ -1,4 +1,5 @@
 package com.example.compose
+
 import androidx.compose.ui.graphics.Color
 
 val primaryLight = Color(0xFFA63500)
@@ -216,10 +217,3 @@ val surfaceContainerLowDarkHighContrast = Color(0xFF2C1C16)
 val surfaceContainerDarkHighContrast = Color(0xFF3E2C26)
 val surfaceContainerHighDarkHighContrast = Color(0xFF4A3731)
 val surfaceContainerHighestDarkHighContrast = Color(0xFF56423C)
-
-
-
-
-
-
-
