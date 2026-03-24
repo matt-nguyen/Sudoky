@@ -31,10 +31,10 @@ data class SudokuGame(val id: Long, val cells: List<DigitCell>) {
      * @return An [Ok] result with the updated [SudokuGame] or an [Err] if the operation is invalid.
      */
     fun setDigit(digit: Int, row: Int, col: Int): Result<SudokuGame, SudokuGameError> {
-        if (digit !in 1..9) {
+        if (digit !in MIN_DIGIT..MAX_DIGIT) {
             return Err(SudokuGameError.InvalidDigit(digit))
         }
-        if (row !in 0..8 || col !in 0..8) {
+        if (row !in 0 until GRID_SIZE || col !in 0 until GRID_SIZE) {
             return Err(SudokuGameError.InvalidCoordinate(row, col))
         }
 

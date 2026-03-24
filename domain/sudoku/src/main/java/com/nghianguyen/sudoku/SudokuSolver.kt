@@ -1,8 +1,14 @@
 package com.nghianguyen.sudoku
 
 import android.util.Log
+import com.nghianguyen.sudoku.model.BOX_SIZE
 import com.nghianguyen.sudoku.model.DigitCell
+import com.nghianguyen.sudoku.model.EMPTY_CELL_VALUE
+import com.nghianguyen.sudoku.model.GRID_SIZE
+import com.nghianguyen.sudoku.model.MAX_DIGIT
+import com.nghianguyen.sudoku.model.MIN_DIGIT
 import com.nghianguyen.sudoku.model.ScannedDigitCell
+import com.nghianguyen.sudoku.model.TOTAL_CELLS
 
 /** Provides logic for processing scanned Sudoku digits and solving Sudoku puzzles. */
 class SudokuSolver {
@@ -20,7 +26,7 @@ class SudokuSolver {
         val digits = mutableListOf<DigitCell>()
 
         // Adding given cells
-        val scanned = Array(9) { IntArray(9) }
+        val scanned = Array(GRID_SIZE) { IntArray(GRID_SIZE) }
         for (scannedDigit in scannedDigits) {
             val digit = scannedDigit.digit.toIntOrNull()
             if (digit == null) {
@@ -29,12 +35,12 @@ class SudokuSolver {
                     "${scannedDigit.digit} is not a digit, on row ${scannedDigit.row}, col ${scannedDigit.col}",
                 )
             }
-            scanned[scannedDigit.row][scannedDigit.col] = digit ?: 0
+            scanned[scannedDigit.row][scannedDigit.col] = digit ?: EMPTY_CELL_VALUE
         }
 
         // Filling in the rest with 0s
-        for (row in 0 until 9) {
-            for (col in 0 until 9) {
+        for (row in 0 until GRID_SIZE) {
+            for (col in 0 until GRID_SIZE) {
                 val digit = scanned[row][col]
                 digits.add(
                     DigitCell(
@@ -62,10 +68,10 @@ class SudokuSolver {
      */
     fun solveBoard(cells: List<DigitCell>): Result<List<DigitCell>> {
         return runCatching {
-            require(cells.size == 81) { "Board must contain 81 cells" }
+            require(cells.size == TOTAL_CELLS) { "Board must contain $TOTAL_CELLS cells" }
 
             // Convert to 2D grid
-            val board = Array(9) { IntArray(9) }
+            val board = Array(GRID_SIZE) { IntArray(GRID_SIZE) }
             cells.forEach { cell -> board[cell.row][cell.col] = cell.current }
 
             // Solve the puzzle
@@ -87,14 +93,14 @@ class SudokuSolver {
      */
     private fun solve(board: Array<IntArray>): Boolean {
 
-        for (row in 0 until 9) {
-            for (col in 0 until 9) {
-                if (board[row][col] == 0) {
-                    for (num in 1..9) {
+        for (row in 0 until GRID_SIZE) {
+            for (col in 0 until GRID_SIZE) {
+                if (board[row][col] == EMPTY_CELL_VALUE) {
+                    for (num in MIN_DIGIT..MAX_DIGIT) {
                         if (isValid(board, row, col, num)) {
                             board[row][col] = num
                             if (solve(board)) return true
-                            board[row][col] = 0
+                            board[row][col] = EMPTY_CELL_VALUE
                         }
                     }
                     return false
@@ -115,18 +121,18 @@ class SudokuSolver {
      */
     private fun isValid(board: Array<IntArray>, row: Int, col: Int, num: Int): Boolean {
         // Row check
-        for (c in 0 until 9) {
+        for (c in 0 until GRID_SIZE) {
             if (board[row][c] == num) return false
         }
         // Column check
-        for (r in 0 until 9) {
+        for (r in 0 until GRID_SIZE) {
             if (board[r][col] == num) return false
         }
         // 3x3 Box check
-        val boxRowStart = row - row % 3
-        val boxColStart = col - col % 3
-        for (r in boxRowStart until boxRowStart + 3) {
-            for (c in boxColStart until boxColStart + 3) {
+        val boxRowStart = row - row % BOX_SIZE
+        val boxColStart = col - col % BOX_SIZE
+        for (r in boxRowStart until boxRowStart + BOX_SIZE) {
+            for (c in boxColStart until boxColStart + BOX_SIZE) {
                 if (board[r][c] == num) return false
             }
         }

@@ -2,6 +2,7 @@
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.androidx.room) apply false
+    alias(libs.plugins.detekt) apply false
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.compose) apply false
     alias(libs.plugins.ksp) apply false
@@ -11,7 +12,13 @@ plugins {
 
 subprojects {
     apply(plugin = "com.ncorti.ktfmt.gradle")
+    apply(plugin = "io.gitlab.arturbosch.detekt")
+
     configure<com.ncorti.ktfmt.gradle.KtfmtExtension> {
         kotlinLangStyle()
+    }
+    configure<io.gitlab.arturbosch.detekt.extensions.DetektExtension> {
+        config.setFrom(rootProject.files("config/detekt/detekt.yml"))
+        buildUponDefaultConfig = true
     }
 }
