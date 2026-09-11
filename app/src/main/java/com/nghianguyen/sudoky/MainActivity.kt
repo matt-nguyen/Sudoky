@@ -9,7 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.compose.SudokuScannerTheme
+import com.nghianguyen.ui.theme.SudokyTheme
 import com.nghianguyen.feature.home.nav.Home
 
 @ExperimentalCamera2Interop
@@ -19,7 +19,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        setContent { SudokuScannerTheme { NavigationRoot(Home) } }
+        setContent { SudokyTheme { NavigationRoot(Home) } }
     }
 }
 
@@ -31,5 +31,5 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
-    SudokuScannerTheme { Greeting("Android") }
+    SudokyTheme { Greeting("Android") }
 }

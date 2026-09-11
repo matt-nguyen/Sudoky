@@ -1,7 +1,7 @@
 package com.nghianguyen.domain.model
 
 /** Base interface for all error types in the application. */
-sealed interface Error {}
+sealed interface Error
 
 /** Represents errors related to local data storage and retrieval. */
 enum class LocalDataError : Error {
@@ -9,7 +9,9 @@ enum class LocalDataError : Error {
     DATABASE_ERROR
 }
 
+/** Represents errors that occur during the Sudoku scanning process. */
 enum class SudokuScanError : Error {
+    /** Indicates that the scanner was unable to detect or process the Sudoku grid from the input image. */
     SCAN_FAILED
 }
 

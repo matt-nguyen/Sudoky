@@ -24,7 +24,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.unit.sp
 
 /**
  * A Composable that renders a 9x9 Sudoku grid. It displays given digits, correctly entered digits,
@@ -39,14 +38,16 @@ fun SudokuGrid(state: SudokuGridState, onCellSelected: ((Int, Int) -> Unit)? = n
     var tapPoint by remember { mutableStateOf<Offset?>(null) }
     var cellSize by remember { mutableFloatStateOf(0f) }
 
-    val thickWidth = 8f
-    val thinWidth = 2f
-
     val gridColor = MaterialTheme.colorScheme.onSurface
     val selectionColor = MaterialTheme.colorScheme.primary
     val backgroundColor = MaterialTheme.colorScheme.surface
 
-    fun getLineWidth(i: Int): Float = if (i % 3 == 0) thickWidth else thinWidth
+    fun getLineWidth(i: Int): Float =
+        if (i % SGDrawingConstants.SUB_GRID_SIZE == 0) {
+            SGDrawingConstants.THICK_LINE_WIDTH
+        } else {
+            SGDrawingConstants.THIN_LINE_WIDTH
+        }
 
     // Calculates the px offset at 'lineIndex'
     // 'lineIndex' is the index of the grid line. Indices include the outer borders.
@@ -69,11 +70,11 @@ fun SudokuGrid(state: SudokuGridState, onCellSelected: ((Int, Int) -> Unit)? = n
     // Maps a px coordinate to a cell index (0-8).
     // Use y-coordinate to get row and x-coordinate to get column.
     fun mapCoord(coord: Float): Int {
-        for (i in 0..8) {
+        for (i in 0 until SGDrawingConstants.GRID_SIZE) {
             val start = getLineOffset(i, cellSize) + getLineWidth(i) / 2f
             if (coord >= start && coord <= start + cellSize) return i
         }
-        return if (coord < getLineOffset(0, cellSize)) 0 else 8
+        return if (coord < getLineOffset(0, cellSize)) 0 else SGDrawingConstants.GRID_SIZE - 1
     }
     // TODO test this still works
     LaunchedEffect(tapPoint) {
@@ -99,18 +100,18 @@ fun SudokuGrid(state: SudokuGridState, onCellSelected: ((Int, Int) -> Unit)? = n
     val givenDigitTextStyle =
         MaterialTheme.typography.bodyLarge.copy(
             fontWeight = FontWeight.Bold,
-            fontSize = 24.sp,
+            fontSize = SGDrawingConstants.FONT_SIZE,
             color = MaterialTheme.colorScheme.onSurface,
         )
     val enteredDigitTextStyle =
         MaterialTheme.typography.bodyLarge.copy(
-            fontSize = 24.sp,
+            fontSize = SGDrawingConstants.FONT_SIZE,
             color = MaterialTheme.colorScheme.primary,
         )
     val wrongDigitTextStyle =
         MaterialTheme.typography.bodyLarge.copy(
             color = MaterialTheme.colorScheme.onErrorContainer,
-            fontSize = 24.sp,
+            fontSize = SGDrawingConstants.FONT_SIZE,
         )
     val wrongBackgroundColor = MaterialTheme.colorScheme.errorContainer
 
@@ -126,8 +127,10 @@ fun SudokuGrid(state: SudokuGridState, onCellSelected: ((Int, Int) -> Unit)? = n
                     }
         ) {
             val sideSize = size.width
-            val totalLineWidth = 4 * thickWidth + 6 * thinWidth
-            cellSize = (sideSize - totalLineWidth) / 9f
+            val totalLineWidth =
+                SGDrawingConstants.NUM_THICK_LINES * SGDrawingConstants.THICK_LINE_WIDTH +
+                        SGDrawingConstants.NUM_THIN_LINES * SGDrawingConstants.THIN_LINE_WIDTH
+            cellSize = (sideSize - totalLineWidth) / SGDrawingConstants.GRID_SIZE.toFloat()
 
             // Draw backgrounds for incorrect items first so lines are on top
             state.incorrectItems.forEach { (_, row, col) ->
@@ -141,7 +144,7 @@ fun SudokuGrid(state: SudokuGridState, onCellSelected: ((Int, Int) -> Unit)? = n
             }
 
             // Draw Grid Lines (10 lines in each direction)
-            for (i in 0..9) {
+            for (i in 0 until SGDrawingConstants.TOTAL_LINES) {
                 val offset = getLineOffset(i, cellSize)
                 val width = getLineWidth(i)
                 // Horizontal
@@ -178,16 +181,18 @@ fun SudokuGrid(state: SudokuGridState, onCellSelected: ((Int, Int) -> Unit)? = n
                 selectedRowCol?.let { (row, col) ->
                     val cellCenterX = getCellCenter(col, cellSize)
                     val cellCenterY = getCellCenter(row, cellSize)
-                    val selectionStrokeWidth = 8f
                     drawRect(
                         color = selectionColor,
                         topLeft =
                             Offset(
-                                cellCenterX - cellSize / 2 + 4f,
-                                cellCenterY - cellSize / 2 + 4f,
+                                cellCenterX - cellSize / 2 + SGDrawingConstants.SELECTION_OFFSET,
+                                cellCenterY - cellSize / 2 + SGDrawingConstants.SELECTION_OFFSET,
                             ),
-                        size = Size(cellSize - 8f, cellSize - 8f),
-                        style = Stroke(width = selectionStrokeWidth),
+                        size = Size(
+                            cellSize - SGDrawingConstants.SELECTION_SIZE_REDUCTION,
+                            cellSize - SGDrawingConstants.SELECTION_SIZE_REDUCTION
+                        ),
+                        style = Stroke(width = SGDrawingConstants.SELECTION_STROKE_WIDTH),
                     )
                 }
             }
