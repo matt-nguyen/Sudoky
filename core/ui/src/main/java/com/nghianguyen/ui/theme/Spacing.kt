@@ -5,6 +5,9 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
+/**
+ * Defines a set of spacing values (in dp) to be used throughout the application UI.
+ */
 @Immutable
 data class Spacing(
     val xSmall: Dp = 4.dp,
@@ -14,4 +17,7 @@ data class Spacing(
     val xLarge: Dp = 48.dp,
 )
 
+/**
+ * A CompositionLocal used to provide [Spacing] throughout the UI hierarchy.
+ */
 val LocalSpacing = staticCompositionLocalOf { Spacing() }

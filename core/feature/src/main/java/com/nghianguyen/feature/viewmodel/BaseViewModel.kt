@@ -3,8 +3,6 @@ package com.nghianguyen.feature.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
@@ -16,6 +14,8 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 /**
  * A base class for all ViewModels in the application. It manages UI state, actions, and one-time
@@ -25,7 +25,7 @@ import kotlinx.coroutines.launch
  * @param ACTION The type representing user actions or intents.
  * @param EVENT The type representing one-time UI events.
  */
-abstract class BaseViewModel<STATE, ACTION, EVENT>() : ViewModel() {
+abstract class BaseViewModel<STATE, ACTION, EVENT> : ViewModel() {
 
     /**
      * Builds and returns the initial state for the UI. This is called when the ViewModel is
