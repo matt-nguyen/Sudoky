@@ -22,7 +22,7 @@ import kotlinx.coroutines.flow.shareIn
  */
 class PlayViewModel(gameId: Long, private val sudokuGameRepository: SudokuGameRepository) :
     BaseViewModel<PlayScreenState, PlayAction, PlayEvent>() {
-    private val TAG = "PlayViewModel"
+    private val logTag = "PlayViewModel"
 
     override fun buildInitialState() = PlayScreenState(emptyList())
 
@@ -41,16 +41,17 @@ class PlayViewModel(gameId: Long, private val sudokuGameRepository: SudokuGameRe
                         onDigitCells(digitCells)
 
                         if (game.isFinished()) {
+                            Log.d(logTag, "Game finished")
                             sendEvent(PlayEvent.GameFinished)
                         }
                     }
-                    .onFailure { Log.d(TAG, "Error getting game: $it") }
+                    .onFailure{ Log.d(logTag, "Error getting game: $it") }
             }
         }
     }
 
     override fun handleAction(action: PlayAction) {
-        Log.d(TAG, "handleAction: $action")
+        Log.d(logTag, "handleAction: $action")
         when (action) {
             is PlayAction.OnDigitEntered -> {
                 enterDigit(action.digit, action.row, action.col)
@@ -101,10 +102,10 @@ class PlayViewModel(gameId: Long, private val sudokuGameRepository: SudokuGameRe
                     game?.let {
                         it.setDigit(digit, row, col)
                             .onSuccess { sudokuGameRepository.updateGame(it) }
-                            .onFailure { Log.d(TAG, "Error updating game: $it") }
+                            .onFailure { Log.d(logTag, "Error updating game: $it") }
                     }
                 }
-                ?.onFailure { Log.d(TAG, "Error getting game: $it") }
+                ?.onFailure{ Log.d(logTag, "Error getting game: $it") }
         }
     }
 
@@ -117,13 +118,13 @@ class PlayViewModel(gameId: Long, private val sudokuGameRepository: SudokuGameRe
                     game?.let {
                         sudokuGameRepository
                             .deleteGame(game)
-                            .onSuccess { Log.d(TAG, "Game deleted") }
-                            .onFailure { Log.d(TAG, "Error deleting game: $it") }
+                            .onSuccess { Log.d(logTag, "Game deleted") }
+                            .onFailure { Log.d(logTag, "Error deleting game: $it") }
                     }
 
                     sendEvent(PlayEvent.GameDeleted)
                 }
-                ?.onFailure { Log.d(TAG, "Error getting game: $it") }
+                ?.onFailure { Log.d(logTag, "Error getting game: $it") }
         }
     }
 }
