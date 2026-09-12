@@ -1,37 +1,24 @@
 package com.nghianguyen.feature.scanner.camera.ui
 
 import androidx.camera.camera2.interop.ExperimentalCamera2Interop
-import androidx.camera.compose.CameraXViewfinder
-import androidx.camera.viewfinder.compose.MutableCoordinateTransformer
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -40,12 +27,9 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
-import com.nghianguyen.feature.scanner.R
 import com.nghianguyen.feature.scanner.camera.viewmodel.CameraAction
 import com.nghianguyen.feature.scanner.camera.viewmodel.CameraEvent
 import com.nghianguyen.feature.scanner.camera.viewmodel.CameraScreenState
-import com.nghianguyen.sudoku.model.BOX_SIZE
-import com.nghianguyen.sudoku.model.GRID_SIZE
 import com.nghianguyen.ui.theme.LocalSpacing
 import kotlinx.coroutines.flow.SharedFlow
 
@@ -133,61 +117,13 @@ fun CameraPreviewContent(
     LaunchedEffect(lifecycleOwner) { onAction(CameraAction.BindCamera(lifecycleOwner)) }
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
         surfaceRequest?.let { request ->
-            val coordinateTransformer = remember { MutableCoordinateTransformer() }
-            CameraXViewfinder(
-                surfaceRequest = request,
-                coordinateTransformer = coordinateTransformer,
-                modifier =
-                    Modifier.fillMaxSize().aspectRatio(1f).drawWithContent {
-                        drawContent()
-
-                        // drawing guide grid lines
-                        val fullSize = size.height
-                        val cellSize = fullSize / GRID_SIZE.toFloat()
-                        val thinWidth = CameraPreviewConstants.GRID_THIN_LINE_WIDTH
-                        val thickWidth = CameraPreviewConstants.GRID_THICK_LINE_WIDTH
-                        val lineColor = Color.White.copy(alpha = CameraPreviewConstants.GRID_LINE_ALPHA)
-
-                        for (i in 0..GRID_SIZE) {
-                            val offset = cellSize * i
-                            val width = if (i % BOX_SIZE == 0) thickWidth else thinWidth
-
-                            // Horizontal
-                            drawLine(lineColor, Offset(0f, offset), Offset(fullSize, offset), width)
-                            // Vertical
-                            drawLine(lineColor, Offset(offset, 0f), Offset(offset, fullSize), width)
-                        }
-                    },
-                contentScale = ContentScale.FillWidth,
-            )
+            CameraViewfinderWithGrid(surfaceRequest = request)
             val spacing = LocalSpacing.current
-            Column(
+            CameraCaptureControls(
                 modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = spacing.xLarge),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                IconButton(
-                    modifier =
-                        Modifier.size(CameraPreviewConstants.CAPTURE_BUTTON_SIZE)
-                            .background(MaterialTheme.colorScheme.primary, CircleShape),
-                    onClick = { onAction(CameraAction.CapturePhoto) },
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.photo_camera_24px),
-                        modifier = Modifier.size(CameraPreviewConstants.CAPTURE_ICON_SIZE),
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        contentDescription = "Capture",
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(spacing.medium))
-                OutlinedButton(
-                    onClick = { onScreenResult(CameraScreenResult.Exit) },
-                    border = BorderStroke(CameraPreviewConstants.BUTTON_BORDER_WIDTH, Color.White),
-                    shape = RoundedCornerShape(CameraPreviewConstants.CANCEL_CORNER_RADIUS),
-                ) {
-                    Text("Cancel", style = MaterialTheme.typography.labelLarge, color = Color.White)
-                }
-            }
+                onCapture = { onAction(CameraAction.CapturePhoto) },
+                onCancel = { onScreenResult(CameraScreenResult.Exit) },
+            )
         }
     }
 }
