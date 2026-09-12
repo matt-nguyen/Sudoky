@@ -3,6 +3,7 @@ package com.nghianguyen.data.scanner.mlkit
 import android.graphics.Point
 import android.util.Log
 import com.google.mlkit.vision.text.Text
+import com.nghianguyen.sudoku.model.GRID_SIZE
 import com.nghianguyen.sudoku.model.ScannedDigitCell
 
 /**
@@ -22,7 +23,7 @@ class SudokuGridMapper {
      */
     fun mapTextToGrid(text: Text, bitmapHeight: Int): List<ScannedDigitCell> {
         val foundDigits = mutableListOf<ScannedDigitCell>()
-        val size = bitmapHeight / 9
+        val size = bitmapHeight / GRID_SIZE
 
         // Map of <Row, List<Column>> to track occupied cells and avoid duplicates
         val occupiedCells = mutableMapOf<Int, MutableList<Int>>()
@@ -30,52 +31,72 @@ class SudokuGridMapper {
         for (block in text.textBlocks) {
             for (line in block.lines) {
                 for (element in line.elements) {
-                    element.boundingBox?.let { box ->
-                        val center = Point(box.centerX(), box.centerY())
-                        val row = center.y / size
-
-                        if (element.text.length > 1) {
-                            var columnFirst = center.x / size
-                            var columnSecond = columnFirst + 1
-
-                            val distanceFromLeft = center.x - (center.x / size * size)
-                            if (distanceFromLeft < size / 2) {
-                                columnFirst--
-                                columnSecond--
-                            }
-
-                            if (addCellIfNotExists(occupiedCells, row, columnFirst)) {
-                                foundDigits.add(
-                                    ScannedDigitCell(element.text[0].toString(), row, columnFirst)
-                                )
-                            }
-
-                            if (addCellIfNotExists(occupiedCells, row, columnSecond)) {
-                                foundDigits.add(
-                                    ScannedDigitCell(
-                                        element.text[element.text.length - 1].toString(),
-                                        row,
-                                        columnSecond,
-                                    )
-                                )
-                            }
-                        } else {
-                            val column = center.x / size
-
-                            if (addCellIfNotExists(occupiedCells, row, column)) {
-                                foundDigits.add(ScannedDigitCell(element.text, row, column))
-                                Log.d(
-                                    "SudokuGridMapper",
-                                    "Single: ${element.text} at row $row, col $column",
-                                )
-                            }
-                        }
-                    }
+                    processElement(element, size, occupiedCells, foundDigits)
                 }
             }
         }
 
         return foundDigits
+    }
+
+    /**
+     * Processes a single ML Kit [Text.Element] to extract digits and their grid coordinates.
+     *
+     * It handles both single-digit elements and elements where multiple digits might be grouped together,
+     * splitting them based on their position relative to the calculated cell boundaries.
+     *
+     * @param element The [Text.Element] to process.
+     * @param size The calculated pixel size (width and height) of a single Sudoku cell.
+     * @param occupiedCells A tracking map to ensure each grid cell is only assigned one digit.
+     * @param foundDigits The list to which successfully mapped [ScannedDigitCell]s are added.
+     */
+    private fun processElement(
+        element: Text.Element,
+        size: Int,
+        occupiedCells: MutableMap<Int, MutableList<Int>>,
+        foundDigits: MutableList<ScannedDigitCell>
+    ) {
+        element.boundingBox?.let { box ->
+            val center = Point(box.centerX(), box.centerY())
+            val row = center.y / size
+
+            if (element.text.length > 1) {
+                var columnFirst = center.x / size
+                var columnSecond = columnFirst + 1
+
+                val distanceFromLeft = center.x - (center.x / size * size)
+                if (distanceFromLeft < size / 2) {
+                    columnFirst--
+                    columnSecond--
+                }
+
+                if (addCellIfNotExists(occupiedCells, row, columnFirst)) {
+                    foundDigits.add(
+                        ScannedDigitCell(element.text[0].toString(), row, columnFirst)
+                    )
+                }
+
+                if (addCellIfNotExists(occupiedCells, row, columnSecond)) {
+                    foundDigits.add(
+                        ScannedDigitCell(
+                            element.text[element.text.length - 1].toString(),
+                            row,
+                            columnSecond,
+                        )
+                    )
+                }
+            } else {
+                val column = center.x / size
+
+                if (addCellIfNotExists(occupiedCells, row, column)) {
+                    foundDigits.add(ScannedDigitCell(element.text, row, column))
+                    Log.d(
+                        "SudokuGridMapper",
+                        "Single: ${element.text} at row $row, col $column",
+                    )
+                }
+            }
+        }
     }
 
     /**
@@ -95,7 +116,7 @@ class SudokuGridMapper {
         row: Int,
         column: Int,
     ): Boolean {
-        if (row !in 0..8 || column !in 0..8) return false
+        if (row !in 0 until GRID_SIZE || column !in 0 until GRID_SIZE) return false
 
         val columnsForRow = occupiedCells.getOrPut(row) { mutableListOf() }
         if (!columnsForRow.contains(column)) {

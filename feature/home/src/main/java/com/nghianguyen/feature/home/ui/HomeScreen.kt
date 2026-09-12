@@ -33,6 +33,14 @@ import com.nghianguyen.feature.home.viewmodel.HomeScreenState
 import com.nghianguyen.ui.theme.LocalSpacing
 import kotlinx.coroutines.flow.SharedFlow
 
+/**
+ * Main screen for the Home feature, providing options to scan a puzzle or continue a game.
+ *
+ * @param state The current UI state.
+ * @param event Flow of one-time events like navigation.
+ * @param onAction Callback for user interactions.
+ * @param onHomeScreenResult Callback for handling screen results and navigation.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -89,6 +97,11 @@ fun HomeScreen(
     }
 }
 
+/**
+ * A button that triggers the Sudoku scanning flow.
+ *
+ * @param onClick The action to perform when the button is clicked.
+ */
 @Composable
 fun ScanPuzzleButton(onClick: () -> Unit) {
 
@@ -111,6 +124,12 @@ fun ScanPuzzleButton(onClick: () -> Unit) {
     }
 }
 
+/**
+ * A button that allows resuming a Sudoku game in progress.
+ *
+ * @param isEnabled Whether there is a game available to continue.
+ * @param onClick The action to perform when the button is clicked.
+ */
 @Composable
 fun ContinueGameButton(isEnabled: Boolean, onClick: () -> Unit) {
 

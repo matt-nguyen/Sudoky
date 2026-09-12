@@ -44,9 +44,19 @@ import com.nghianguyen.feature.scanner.R
 import com.nghianguyen.feature.scanner.camera.viewmodel.CameraAction
 import com.nghianguyen.feature.scanner.camera.viewmodel.CameraEvent
 import com.nghianguyen.feature.scanner.camera.viewmodel.CameraScreenState
+import com.nghianguyen.sudoku.model.BOX_SIZE
+import com.nghianguyen.sudoku.model.GRID_SIZE
 import com.nghianguyen.ui.theme.LocalSpacing
 import kotlinx.coroutines.flow.SharedFlow
 
+/**
+ * Main screen for the camera scanner, managing permissions and hosting the preview.
+ *
+ * @param state Current UI state.
+ * @param event Flow of one-time events.
+ * @param onAction User interaction callback.
+ * @param onScreenResult Navigation result callback.
+ */
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun CameraPreviewScreen(
@@ -60,7 +70,10 @@ fun CameraPreviewScreen(
         CameraPreviewContent(state, event, onAction, onScreenResult)
     } else {
         Column(
-            modifier = Modifier.fillMaxSize().wrapContentSize().widthIn(max = 480.dp),
+            modifier =
+                Modifier.fillMaxSize()
+                    .wrapContentSize()
+                    .widthIn(max = CameraPreviewConstants.PERMISSION_MAX_WIDTH),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             val textToShow =
@@ -86,6 +99,14 @@ fun CameraPreviewScreen(
     }
 }
 
+/**
+ * The internal content of the camera scanner, displaying the viewfinder and capture controls.
+ *
+ * @param state Current UI state.
+ * @param event Flow of one-time events.
+ * @param onAction Callback for UI actions.
+ * @param onScreenResult Callback for navigation results.
+ */
 @androidx.annotation.OptIn(ExperimentalCamera2Interop::class)
 @Composable
 fun CameraPreviewContent(
@@ -122,14 +143,14 @@ fun CameraPreviewContent(
 
                         // drawing guide grid lines
                         val fullSize = size.height
-                        val cellSize = fullSize / 9f
-                        val thinWidth = 2f
-                        val thickWidth = 5f
-                        val lineColor = Color.White.copy(alpha = 0.8f)
+                        val cellSize = fullSize / GRID_SIZE.toFloat()
+                        val thinWidth = CameraPreviewConstants.GRID_THIN_LINE_WIDTH
+                        val thickWidth = CameraPreviewConstants.GRID_THICK_LINE_WIDTH
+                        val lineColor = Color.White.copy(alpha = CameraPreviewConstants.GRID_LINE_ALPHA)
 
-                        for (i in 0..9) {
+                        for (i in 0..GRID_SIZE) {
                             val offset = cellSize * i
-                            val width = if (i % 3 == 0) thickWidth else thinWidth
+                            val width = if (i % BOX_SIZE == 0) thickWidth else thinWidth
 
                             // Horizontal
                             drawLine(lineColor, Offset(0f, offset), Offset(fullSize, offset), width)
@@ -146,13 +167,13 @@ fun CameraPreviewContent(
             ) {
                 IconButton(
                     modifier =
-                        Modifier.size(80.dp)
+                        Modifier.size(CameraPreviewConstants.CAPTURE_BUTTON_SIZE)
                             .background(MaterialTheme.colorScheme.primary, CircleShape),
                     onClick = { onAction(CameraAction.CapturePhoto) },
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.photo_camera_24px),
-                        modifier = Modifier.size(36.dp),
+                        modifier = Modifier.size(CameraPreviewConstants.CAPTURE_ICON_SIZE),
                         tint = MaterialTheme.colorScheme.onPrimary,
                         contentDescription = "Capture",
                     )
@@ -161,8 +182,8 @@ fun CameraPreviewContent(
                 Spacer(modifier = Modifier.height(spacing.medium))
                 OutlinedButton(
                     onClick = { onScreenResult(CameraScreenResult.Exit) },
-                    border = BorderStroke(1.dp, Color.White),
-                    shape = RoundedCornerShape(8.dp),
+                    border = BorderStroke(CameraPreviewConstants.BUTTON_BORDER_WIDTH, Color.White),
+                    shape = RoundedCornerShape(CameraPreviewConstants.CANCEL_CORNER_RADIUS),
                 ) {
                     Text("Cancel", style = MaterialTheme.typography.labelLarge, color = Color.White)
                 }

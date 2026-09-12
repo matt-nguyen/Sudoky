@@ -35,10 +35,20 @@ import androidx.compose.ui.unit.dp
 import com.nghianguyen.feature.sudoku.play.viewmodel.PlayAction
 import com.nghianguyen.feature.sudoku.play.viewmodel.PlayEvent
 import com.nghianguyen.feature.sudoku.play.viewmodel.PlayScreenState
+import com.nghianguyen.sudoku.model.BOX_SIZE
+import com.nghianguyen.sudoku.model.EMPTY_CELL_VALUE
 import com.nghianguyen.ui.component.sudokugrid.SudokuGrid
 import com.nghianguyen.ui.theme.LocalSpacing
 import kotlinx.coroutines.flow.SharedFlow
 
+/**
+ * Screen for playing a Sudoku game, displaying the grid and providing controls for digit entry.
+ *
+ * @param state The current UI state.
+ * @param event Flow of one-time events from the ViewModel.
+ * @param onAction Callback for handling user actions.
+ * @param onScreenResult Callback for communicating screen results.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayScreen(
@@ -82,20 +92,22 @@ fun PlayScreen(
                 }
 
                 Column(
-                    modifier = Modifier.fillMaxWidth(0.5f).padding(horizontal = spacing.medium),
+                    modifier =
+                        Modifier.fillMaxWidth(PlayScreenConstants.KEYPAD_WIDTH_FRACTION)
+                            .padding(horizontal = spacing.medium),
                     verticalArrangement = Arrangement.spacedBy(spacing.small),
                 ) {
-                    (0..2).forEach { rowIndex ->
+                    for (rowIndex in 0 until BOX_SIZE) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement =
                                 Arrangement.spacedBy(spacing.small, Alignment.CenterHorizontally),
                         ) {
-                            (1..3).forEach { colIndex ->
-                                val digit = rowIndex * 3 + colIndex
+                            for (colIndex in 1..BOX_SIZE) {
+                                val digit = rowIndex * BOX_SIZE + colIndex
                                 DigitButton(
                                     text = digit.toString(),
-                                    modifier = Modifier.size(64.dp),
+                                    modifier = Modifier.size(PlayScreenConstants.DIGIT_BUTTON_SIZE),
                                     onClick = {
                                         onAction(
                                             PlayAction.OnDigitEntered(
@@ -114,7 +126,13 @@ fun PlayScreen(
                         text = "Clear",
                         modifier = Modifier.fillMaxWidth(),
                         onClick = {
-                            onAction(PlayAction.OnDigitEntered(0, selectedRow, selectedCol))
+                            onAction(
+                                PlayAction.OnDigitEntered(
+                                    EMPTY_CELL_VALUE,
+                                    selectedRow,
+                                    selectedCol,
+                                )
+                            )
                         },
                     )
                 }
@@ -122,15 +140,22 @@ fun PlayScreen(
 
             OutlinedButton(
                 onClick = { onScreenResult(PlayScreenResult.Exit) },
-                modifier = Modifier.align(Alignment.BottomEnd).padding(spacing.large).size(56.dp),
+                modifier =
+                    Modifier.align(Alignment.BottomEnd)
+                        .padding(spacing.large)
+                        .size(PlayScreenConstants.EXIT_BUTTON_SIZE),
                 shape = CircleShape,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                border =
+                    BorderStroke(
+                        PlayScreenConstants.DEFAULT_BORDER_WIDTH,
+                        MaterialTheme.colorScheme.outline,
+                    ),
                 contentPadding = PaddingValues(0.dp),
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Exit",
-                    modifier = Modifier.size(32.dp),
+                    modifier = Modifier.size(PlayScreenConstants.EXIT_ICON_SIZE),
                 )
             }
         }
@@ -138,8 +163,12 @@ fun PlayScreen(
         if (showFinishedDialog) {
             BasicAlertDialog(onDismissRequest = { onAction(PlayAction.OnDeleteGame) }) {
                 Card(
-                    shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                    shape = RoundedCornerShape(PlayScreenConstants.FINISHED_DIALOG_CORNER_RADIUS),
+                    border =
+                        BorderStroke(
+                            PlayScreenConstants.DEFAULT_BORDER_WIDTH,
+                            MaterialTheme.colorScheme.outline,
+                        ),
                 ) {
                     Column(
                         modifier = Modifier.padding(spacing.large),

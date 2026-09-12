@@ -20,6 +20,7 @@ class CameraViewModel(
     private val cameraManager: CameraManager,
     private val sudokuScanner: SudokuScanner,
 ) : BaseViewModel<CameraScreenState, CameraAction, CameraEvent>() {
+    private val TAG = "CameraViewModel"
 
     override fun buildInitialState(): CameraScreenState = CameraScreenState(null)
 
@@ -32,7 +33,7 @@ class CameraViewModel(
     }
 
     override fun handleAction(action: CameraAction) {
-        Log.d("CameraViewModel", "handleAction: $action")
+        Log.d(TAG, "handleAction: $action")
         when (action) {
             is CameraAction.BindCamera -> bindToCamera(action.lifecycleOwner)
             CameraAction.CapturePhoto -> takePicture()
@@ -45,11 +46,11 @@ class CameraViewModel(
                 .scanForDigits(it)
                 .onSuccess { foundDigits ->
                     foundDigits.forEach { (digit, row, col) ->
-                        Log.d("CameraViewModel", "digit $digit, row $row, col $col")
+                        Log.d(TAG, "digit $digit, row $row, col $col")
                     }
                     sendEvent(CameraEvent.DigitsScanned(foundDigits))
                 }
-                .onFailure { Log.d("CameraViewModel", "scanForDigits onfailure: $it") }
+                .onFailure { Log.d(TAG, "scanForDigits onfailure: $it") }
         }
     }
 

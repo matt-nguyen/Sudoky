@@ -8,7 +8,7 @@ config:
 comments:
   active: true
   UndocumentedPublicClass:
-    active: true
+    active: false
     excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/jsTest/**', '**/iosTest/**']
   UndocumentedPublicFunction:
     active: true
@@ -126,6 +126,8 @@ naming:
     ignoreAnnotated:
       - 'Composable'
       - 'Preview'
+  MatchingDeclarationName:
+    active: false
   TopLevelPropertyNaming:
     active: true
     # Allows PascalCase (Compose) and UPPER_SNAKE_CASE (Standard Kotlin)

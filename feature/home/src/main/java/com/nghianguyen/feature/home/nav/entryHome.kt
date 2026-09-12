@@ -9,6 +9,11 @@ import com.nghianguyen.feature.home.ui.HomeScreenResult
 import com.nghianguyen.feature.home.viewmodel.HomeViewModel
 import org.koin.androidx.compose.koinViewModel
 
+/**
+ * Registers the Home screen as a destination in the navigation graph.
+ *
+ * @param onHomeScreenResult A callback function that handles [HomeScreenResult]s,
+ */
 fun EntryProviderScope<NavKey>.entryHome(onHomeScreenResult: (HomeScreenResult) -> Unit) {
     entry<Home> {
         val viewModel: HomeViewModel = koinViewModel()

@@ -21,6 +21,7 @@ class ConfirmViewModel(
     private val sudokuSolver: SudokuSolver,
     private val sudokuGameRepository: SudokuGameRepository,
 ) : BaseViewModel<ConfirmScreenState, ConfirmAction, ConfirmEvent>() {
+    private val TAG = "ConfirmViewModel"
 
     override fun buildInitialState(): ConfirmScreenState =
         ConfirmScreenState(emptyList(), SudokuGridState(), false)
@@ -51,7 +52,7 @@ class ConfirmViewModel(
                 }
             }
             .onFailure {
-                Log.e("ConfirmViewModel", "solveBoard failed", it)
+                Log.e(TAG, "solveBoard failed", it)
                 val givenItems = buildSudokuGrid.filter { it.isGiven }.toDigitCellItems()
                 updateState {
                     copy(
@@ -64,7 +65,7 @@ class ConfirmViewModel(
     }
 
     override fun handleAction(action: ConfirmAction) {
-        Log.d("ConfirmViewModel", "handleAction: $action")
+        Log.d(TAG, "handleAction: $action")
         when (action) {
             ConfirmAction.Confirm -> confirmSudoku()
         }
@@ -77,10 +78,10 @@ class ConfirmViewModel(
             sudokuGameRepository
                 .newGame(uiState.value.digits)
                 .onSuccess {
-                    Log.d("ConfirmViewModel", "new game id: $it")
+                    Log.d(TAG, "new game id: $it")
                     sendEvent(ConfirmEvent.ConfirmedGame(it))
                 }
-                .onFailure { Log.d("ConfirmViewModel", "Error: $it") }
+                .onFailure { Log.d(TAG, "Error: $it") }
         }
     }
 }

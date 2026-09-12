@@ -20,12 +20,26 @@ import com.nghianguyen.feature.scanner.confirm.viewmodel.ConfirmViewModel
 import com.nghianguyen.feature.scanner.viewmodel.SharedScanViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
+/**
+ * Results produced by the scanner navigation graph.
+ */
 sealed interface ScannerNavGraphResult {
+    /**
+     * Indicates the scan was confirmed and a game was started or continued.
+     *
+     * @param gameId The ID of the Sudoku game.
+     */
     data class ContinueGame(val gameId: Long) : ScannerNavGraphResult
 
+    /** Indicates the scanner flow was exited without starting a game. */
     data object Exit : ScannerNavGraphResult
 }
 
+/**
+ * Registers the scanner feature as a destination in the navigation graph.
+ *
+ * @param onScannerNavGraphResult Callback for handling navigation results from the scanner flow.
+ */
 fun EntryProviderScope<NavKey>.entryScanner(
     onScannerNavGraphResult: (ScannerNavGraphResult) -> Unit
 ) {
@@ -45,6 +59,13 @@ fun EntryProviderScope<NavKey>.entryScanner(
     }
 }
 
+/**
+ * Registers the camera preview destination within the scanner feature.
+ *
+ * @param scanBackStack The navigation backstack for the scanner flow.
+ * @param sharedScanViewModel ViewModel for sharing data during scanning.
+ * @param onScannerNavGraphResult Callback for scanner flow results.
+ */
 fun EntryProviderScope<NavKey>.entryScannerCamera(
     scanBackStack: NavBackStack<NavKey>,
     sharedScanViewModel: SharedScanViewModel,
@@ -68,6 +89,13 @@ fun EntryProviderScope<NavKey>.entryScannerCamera(
     }
 }
 
+/**
+ * Registers the scan confirmation destination within the scanner feature.
+ *
+ * @param scanBackStack The navigation backstack for the scanner flow.
+ * @param sharedScanViewModel ViewModel for sharing data during scanning.
+ * @param onScannerNavGraphResult Callback for scanner flow results.
+ */
 fun EntryProviderScope<NavKey>.entryScannerConfirm(
     scanBackStack: NavBackStack<NavKey>,
     sharedScanViewModel: SharedScanViewModel,

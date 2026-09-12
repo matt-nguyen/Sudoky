@@ -11,11 +11,18 @@ import com.google.mlkit.vision.text.TextRecognizer
 import com.nghianguyen.domain.model.SudokuScanError
 import com.nghianguyen.sudoku.SudokuScanner
 import com.nghianguyen.sudoku.model.ScannedDigitCell
-import kotlin.coroutines.resume
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.resume
 
+/**
+ * Implementation of [SudokuScanner] that uses Google's ML Kit Text Recognition to identify digits
+ * in a Sudoku grid.
+ *
+ * @property textRecognizer The ML Kit [TextRecognizer] used to extract text from the image.
+ * @property mapper The [SudokuGridMapper] used to map detected text blocks to Sudoku grid coordinates.
+ */
 class SudokuScannerImpl(
     private val textRecognizer: TextRecognizer,
     private val mapper: SudokuGridMapper = SudokuGridMapper(),

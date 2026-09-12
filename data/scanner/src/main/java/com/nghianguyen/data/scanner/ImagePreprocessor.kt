@@ -22,6 +22,10 @@ interface ImagePreprocessor {
     fun process(source: Bitmap, rotationDegrees: Float, targetSizePx: Float): Bitmap
 }
 
+/**
+ * Default implementation of [ImagePreprocessor] that uses [Matrix] transformations to crop,
+ * scale, and rotate bitmaps.
+ */
 class ImagePreprocessorImpl : ImagePreprocessor {
 
     override fun process(source: Bitmap, rotationDegrees: Float, targetSizePx: Float): Bitmap {

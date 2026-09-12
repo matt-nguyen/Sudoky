@@ -10,6 +10,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+/**
+ * A button representing a single digit input for the Sudoku grid.
+ *
+ * @param text The digit or text to display on the button.
+ * @param onClick Callback for when the button is clicked.
+ * @param modifier The modifier to be applied to the button.
+ */
 @Composable
 fun DigitButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     OutlinedButton(

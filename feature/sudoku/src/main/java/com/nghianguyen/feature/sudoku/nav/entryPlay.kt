@@ -10,6 +10,11 @@ import com.nghianguyen.feature.sudoku.play.viewmodel.PlayViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
+/**
+ * Registers the game play destination in the navigation graph.
+ *
+ * @param onScreenResult Callback for handling results from the play screen.
+ */
 fun EntryProviderScope<NavKey>.entryPlay(onScreenResult: (PlayScreenResult) -> Unit) {
     entry<Play> { key ->
         val viewModel: PlayViewModel = koinViewModel { parametersOf(key.gameId) }

@@ -28,6 +28,14 @@ import com.nghianguyen.ui.component.sudokugrid.SudokuGrid
 import com.nghianguyen.ui.theme.LocalSpacing
 import kotlinx.coroutines.flow.SharedFlow
 
+/**
+ * Screen for reviewing and confirming interpreted Sudoku scan results.
+ *
+ * @param state Current UI state.
+ * @param event Flow of one-time events.
+ * @param onAction User interaction callback.
+ * @param onScreenResult Navigation and result callback.
+ */
 @Composable
 fun ConfirmScreen(
     state: ConfirmScreenState,
