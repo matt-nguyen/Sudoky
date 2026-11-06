@@ -2,12 +2,10 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.androidx.room)
     alias(libs.plugins.koin.compiler)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.ksp)
 }
 
 android {
@@ -39,7 +37,7 @@ android {
     }
     kotlin { compilerOptions { jvmTarget = JvmTarget.JVM_11 } }
     buildFeatures { compose = true }
-    room { schemaDirectory("$projectDir/schemas") }
+//    room { schemaDirectory("$projectDir/schemas") }
 }
 
 dependencies {
@@ -57,16 +55,10 @@ dependencies {
 
     implementation(libs.accompanist.permissions)
 
-    //    implementation(libs.mlkit.textrecognition)
-
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.compose)
-
-    implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler)
 
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.android)
