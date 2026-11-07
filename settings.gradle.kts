@@ -1,4 +1,5 @@
 pluginManagement {
+    includeBuild("build-logic")
     repositories {
         google {
             content {
@@ -21,7 +22,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "Sudoky"
 include(":app")
-//include(":feature:base")
 include(":feature:scanner")
 include(":feature:sudoku")
 include(":core:feature")
@@ -31,6 +31,5 @@ include(":data:sudoku")
 include(":data:sudoku:room")
 include(":data:scanner")
 include(":data:scanner:mlkit")
-include(":feature:sudoku")
 include(":core:ui")
 include(":feature:home")
