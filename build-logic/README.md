@@ -102,14 +102,10 @@ Keep a short Gradle user-home path on Windows: nested project-local caches can
 exceed Windows path limits while unpacking Android dependencies.
 
 The quality commands select tasks across the Android modules. `build-logic`
-is validated separately by its own `build` task. See
-[quality verification](../docs/quality-verification.md) for the existing source
-findings recorded before and after migration.
+is validated separately by its own `build` task. Module-specific Detekt and lint
+reports are generated under each module's `build/reports` directory.
 
 ## Migration complete
 
 All five conventions are implemented: application, library, Compose, Room, and
 quality. AGP and dependency versions remain unchanged by the migration.
-
-See [the recorded decisions](../docs/build-convention-decisions.md) for namespace,
-JUnit, Compose, and Room ownership policy.
