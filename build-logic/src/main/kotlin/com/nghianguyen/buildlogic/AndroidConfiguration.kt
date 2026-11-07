@@ -1,0 +1,27 @@
+package com.nghianguyen.buildlogic
+
+import com.android.build.api.dsl.CommonExtension
+import org.gradle.api.JavaVersion
+import org.gradle.api.Project
+import org.gradle.kotlin.dsl.configure
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension
+
+/** Keeps SDK and compiler defaults consistent between Android apps and libraries. */
+internal fun Project.configureAndroid(extension: CommonExtension<*, *, *, *, *, *>) {
+    extension.apply {
+        compileSdk = 36
+        defaultConfig {
+            minSdk = 26
+            testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        }
+        compileOptions {
+            sourceCompatibility = JavaVersion.VERSION_11
+            targetCompatibility = JavaVersion.VERSION_11
+        }
+    }
+
+    extensions.configure<KotlinAndroidProjectExtension> {
+        compilerOptions { jvmTarget.set(JvmTarget.JVM_11) }
+    }
+}

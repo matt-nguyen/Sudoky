@@ -1,24 +1,10 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.androidx.room)
+    id("sudoky.android.library")
+    id("sudoky.android.room")
     alias(libs.plugins.koin.compiler)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.ksp)
 }
 
 android {
-    namespace = "com.nghianguyen.data.sudoku.room"
-    compileSdk = 36
-
-    defaultConfig {
-        minSdk = 26
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
-    }
-
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -28,14 +14,6 @@ android {
             )
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    kotlin { compilerOptions { jvmTarget = JvmTarget.JVM_11 } }
-
-    room { schemaDirectory("$projectDir/schemas") }
 }
 
 dependencies {
@@ -44,10 +22,6 @@ dependencies {
     implementation(project(":core:domain"))
 
     implementation(libs.kotlin.result)
-
-    implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler)
 
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.android)
