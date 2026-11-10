@@ -17,6 +17,7 @@ android {
 
 dependencies {
     implementation(project(":core:domain"))
+    implementation(project(":data:scanner"))
     implementation(project(":domain:sudoku"))
 
     implementation(libs.mlkit.textrecognition)

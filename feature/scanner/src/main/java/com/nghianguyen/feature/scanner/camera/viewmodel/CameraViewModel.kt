@@ -1,6 +1,5 @@
 package com.nghianguyen.feature.scanner.camera.viewmodel
 
-import android.graphics.Bitmap
 import android.util.Log
 import androidx.lifecycle.LifecycleOwner
 import com.github.michaelbull.result.onFailure
@@ -8,6 +7,7 @@ import com.github.michaelbull.result.onSuccess
 import com.nghianguyen.feature.scanner.camera.CameraManager
 import com.nghianguyen.feature.viewmodel.BaseViewModel
 import com.nghianguyen.sudoku.SudokuScanner
+import com.nghianguyen.sudoku.model.ScanImage
 
 /**
  * ViewModel for the camera scanning screen. Orchestrates the camera lifecycle, photo capture, and
@@ -40,7 +40,7 @@ class CameraViewModel(
         }
     }
 
-    private val onImageCaptured: (Bitmap) -> Unit = {
+    private val onImageCaptured: (ScanImage) -> Unit = {
         launch {
             sudokuScanner
                 .scanForDigits(it)
@@ -55,7 +55,11 @@ class CameraViewModel(
     }
 
     private fun bindToCamera(lifecycleOwner: LifecycleOwner) {
-        launch { cameraManager.bindToLifecycle(lifecycleOwner, onImageCaptured) }
+        launch {
+            cameraManager.bindToLifecycle(lifecycleOwner, onImageCaptured) { exception ->
+                Log.e(logTag, "Image capture failed", exception)
+            }
+        }
     }
 
     private fun takePicture() {

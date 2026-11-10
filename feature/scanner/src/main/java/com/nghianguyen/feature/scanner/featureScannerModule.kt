@@ -10,7 +10,7 @@ import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val featureScannerModule = module {
-    single<CameraManager> { CameraManager(androidContext(), get()) }
+    single<CameraManager> { CameraManager(androidContext()) }
     single<SudokuSolver> { SudokuSolver() }
     viewModel<CameraViewModel> { CameraViewModel(get(), get()) }
     viewModel<SharedScanViewModel> { SharedScanViewModel() }

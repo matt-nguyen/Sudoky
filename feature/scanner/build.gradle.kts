@@ -22,7 +22,6 @@ dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:ui"))
     implementation(project(":domain:sudoku"))
-    implementation(project(":data:scanner"))
     implementation(project(":data:scanner:mlkit"))
 
     implementation(libs.accompanist.permissions)

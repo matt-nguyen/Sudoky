@@ -1,7 +1,7 @@
 package com.nghianguyen.feature.scanner.camera
 
 import android.content.Context
-import android.graphics.Bitmap
+import android.graphics.ImageFormat
 import android.util.Rational
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -17,7 +17,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.lifecycle.awaitInstance
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
-import com.nghianguyen.data.scanner.ImagePreprocessor
+import com.nghianguyen.sudoku.model.ScanImage
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,18 +27,16 @@ import kotlinx.coroutines.flow.asStateFlow
  * providing a surface request for previews, and capturing photos.
  *
  * @property context Application context.
- * @property imagePreprocessor Utility for preprocessing captured images.
  */
-class CameraManager(
-    private val context: Context,
-    private val imagePreprocessor: ImagePreprocessor,
-) {
+class CameraManager(private val context: Context) {
     private val _surfaceRequest = MutableStateFlow<SurfaceRequest?>(null)
     /** Flow emitting [SurfaceRequest]s for the camera preview. */
     val surfaceRequest = _surfaceRequest.asStateFlow()
 
-    /** Callback triggered when a photo is captured and preprocessed. */
-    lateinit var onImageCaptured: (Bitmap) -> Unit
+    /** Callback triggered when a photo is captured and copied into a [ScanImage]. */
+    lateinit var onImageCaptured: (ScanImage) -> Unit
+
+    private lateinit var onCaptureError: (Exception) -> Unit
 
     private lateinit var imageCaptureUseCase: ImageCapture
 
@@ -47,9 +45,15 @@ class CameraManager(
      *
      * @param lifecycleOwner The lifecycle owner to bind to.
      * @param callback The function to call when an image is captured.
+     * @param onError Receives capture and JPEG extraction failures.
      */
-    suspend fun bindToLifecycle(lifecycleOwner: LifecycleOwner, callback: (Bitmap) -> Unit) {
+    suspend fun bindToLifecycle(
+        lifecycleOwner: LifecycleOwner,
+        callback: (ScanImage) -> Unit,
+        onError: (Exception) -> Unit,
+    ) {
         onImageCaptured = callback
+        onCaptureError = onError
 
         val processCameraProvider = ProcessCameraProvider.awaitInstance(context)
         processCameraProvider.unbindAll()
@@ -68,7 +72,7 @@ class CameraManager(
     }
 
     /**
-     * Triggers a photo capture. The result will be processed and returned via the [onImageCaptured]
+     * Triggers a photo capture. The JPEG bytes and rotation are returned via the [onImageCaptured]
      * callback.
      */
     fun takePicture() {
@@ -76,19 +80,20 @@ class CameraManager(
             ContextCompat.getMainExecutor(context),
             object : ImageCapture.OnImageCapturedCallback() {
                 override fun onCaptureSuccess(image: ImageProxy) {
-                    super.onCaptureSuccess(image)
-                    val outputBitmap =
-                        imagePreprocessor.process(
-                            source = image.toBitmap(),
-                            rotationDegrees = image.imageInfo.rotationDegrees.toFloat(),
-                            targetSizePx = image.height.toFloat(),
-                        )
-                    onImageCaptured(outputBitmap)
+                    val captured =
+                        try {
+                            ScanImage(image.toJpegBytes(), image.imageInfo.rotationDegrees)
+                        } catch (exception: Exception) {
+                            onCaptureError(exception)
+                            return
+                        } finally {
+                            image.close()
+                        }
+                    onImageCaptured(captured)
                 }
 
                 override fun onError(exception: ImageCaptureException) {
-                    super.onError(exception)
-                    // TODO handle error
+                    onCaptureError(exception)
                 }
             },
         )
@@ -117,6 +122,7 @@ class CameraManager(
 
     private fun buildImageCaptureUseCase(resolutionSelector: ResolutionSelector): ImageCapture {
         return ImageCapture.Builder()
+            .setOutputFormat(ImageCapture.OUTPUT_FORMAT_JPEG)
             .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
             .setResolutionSelector(resolutionSelector)
             .build()
@@ -127,4 +133,11 @@ class CameraManager(
             setSurfaceProvider { surfaceRequest -> _surfaceRequest.value = surfaceRequest }
         }
     }
+}
+
+private fun ImageProxy.toJpegBytes(): ByteArray {
+    require(format == ImageFormat.JPEG) { "Expected JPEG ImageProxy; received format=$format" }
+    val buffer = planes.single().buffer.duplicate()
+    buffer.rewind()
+    return ByteArray(buffer.remaining()).also(buffer::get)
 }

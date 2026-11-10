@@ -1,6 +1,5 @@
 package com.nghianguyen.sudoku
 
-import android.util.Log
 import com.nghianguyen.sudoku.model.BOX_SIZE
 import com.nghianguyen.sudoku.model.CellState
 import com.nghianguyen.sudoku.model.Column
@@ -27,19 +26,12 @@ class SudokuSolver {
      */
     // TODO extract this method out of SudokuSolver
     fun buildSudokuGrid(scannedDigits: List<ScannedDigitCell>): List<DigitCell> {
-        Log.d("SudokuSolver", "buildSudokuGrid")
         val digits = mutableListOf<DigitCell>()
 
         // Adding given cells
         val scanned = Array(GRID_SIZE) { IntArray(GRID_SIZE) }
         for (scannedDigit in scannedDigits) {
             val digit = scannedDigit.digit.toIntOrNull()
-            if (digit == null || digit !in MIN_DIGIT..MAX_DIGIT) {
-                Log.d(
-                    "SudokuSolver",
-                    "${scannedDigit.digit} is not a digit, on row ${scannedDigit.row}, col ${scannedDigit.col}",
-                )
-            }
             scanned[scannedDigit.row][scannedDigit.col] =
                 digit?.takeIf { it in MIN_DIGIT..MAX_DIGIT } ?: EMPTY_CELL_VALUE
         }
