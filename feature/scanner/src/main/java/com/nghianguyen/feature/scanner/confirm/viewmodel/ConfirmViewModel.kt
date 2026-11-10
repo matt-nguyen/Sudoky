@@ -6,6 +6,7 @@ import com.github.michaelbull.result.onSuccess
 import com.nghianguyen.feature.viewmodel.BaseViewModel
 import com.nghianguyen.sudoku.SudokuGameRepository
 import com.nghianguyen.sudoku.SudokuSolver
+import com.nghianguyen.sudoku.model.CellState
 import com.nghianguyen.sudoku.model.ScannedDigitCell
 import com.nghianguyen.ui.component.sudokugrid.SudokuGridState
 import com.nghianguyen.ui.component.sudokugrid.toDigitCellItems
@@ -42,7 +43,7 @@ class ConfirmViewModel(
         sudokuSolver
             .solveBoard(buildSudokuGrid)
             .onSuccess { digits ->
-                val givenItems = digits.filter { it.isGiven }.toDigitCellItems()
+                val givenItems = digits.filter { it.state is CellState.Given }.toDigitCellItems()
                 updateState {
                     copy(
                         digits = digits,
@@ -53,7 +54,7 @@ class ConfirmViewModel(
             }
             .onFailure {
                 Log.e(logTag, "solveBoard failed", it)
-                val givenItems = buildSudokuGrid.filter { it.isGiven }.toDigitCellItems()
+                val givenItems = buildSudokuGrid.filter { it.state is CellState.Given }.toDigitCellItems()
                 updateState {
                     copy(
                         digits = buildSudokuGrid,

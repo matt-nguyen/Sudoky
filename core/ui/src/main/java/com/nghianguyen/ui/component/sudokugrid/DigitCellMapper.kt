@@ -1,6 +1,8 @@
 package com.nghianguyen.ui.component.sudokugrid
 
 import com.nghianguyen.sudoku.model.DigitCell
+import com.nghianguyen.sudoku.model.EMPTY_CELL_VALUE
+import com.nghianguyen.sudoku.model.digit
 
 /**
  * Maps a [DigitCell] domain model to a [DigitCellItem] UI model.
@@ -8,7 +10,11 @@ import com.nghianguyen.sudoku.model.DigitCell
  * @return A [DigitCellItem] with the same digit value, row, and column as the [DigitCell].
  */
 fun DigitCell.toDigitCellItem(): DigitCellItem {
-    return DigitCellItem(digit = current, row = row, col = col)
+    return DigitCellItem(
+        digit = state.digit?.value ?: EMPTY_CELL_VALUE,
+        row = row.value,
+        col = col.value,
+    )
 }
 
 /**

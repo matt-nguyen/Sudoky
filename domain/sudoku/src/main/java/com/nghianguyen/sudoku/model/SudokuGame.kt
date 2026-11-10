@@ -38,16 +38,20 @@ data class SudokuGame(val id: Long, val cells: List<DigitCell>) {
             return Err(SudokuGameError.InvalidCoordinate(row, col))
         }
 
-        val index = cells.indexOfFirst { it.row == row && it.col == col }
+        val targetRow = Row(row)
+        val targetColumn = Column(col)
+        val index = cells.indexOfFirst { it.row == targetRow && it.col == targetColumn }
         val targetCell =
             cells.getOrNull(index) ?: return Err(SudokuGameError.InvalidCoordinate(row, col))
 
-        if (targetCell.isGiven) {
+        if (targetCell.state is CellState.Given) {
             return Err(SudokuGameError.GivenCellModification(row, col))
         }
 
         val updatedCells =
-            cells.toMutableList().apply { set(index, targetCell.copy(current = digit)) }
+            cells.toMutableList().apply {
+                set(index, targetCell.copy(state = CellState.Entered(Digit(digit))))
+            }
 
         return Ok(copy(cells = updatedCells))
     }
