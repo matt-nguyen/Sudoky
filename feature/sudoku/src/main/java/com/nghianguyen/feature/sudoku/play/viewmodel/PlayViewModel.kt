@@ -6,6 +6,7 @@ import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
 import com.nghianguyen.feature.viewmodel.BaseViewModel
 import com.nghianguyen.sudoku.SudokuGameRepository
+import com.nghianguyen.sudoku.model.CellState
 import com.nghianguyen.sudoku.model.DigitCell
 import com.nghianguyen.ui.component.sudokugrid.DigitCellItem
 import com.nghianguyen.ui.component.sudokugrid.SudokuGridState
@@ -73,10 +74,12 @@ class PlayViewModel(gameId: Long, private val sudokuGameRepository: SudokuGameRe
 
         digitCells.forEach { cell ->
             val item = cell.toDigitCellItem()
-            when {
-                cell.isGiven -> givenItems.add(item)
-                cell.isCorrect() -> correctItems.add(item)
-                cell.hasDigitEntered() -> incorrectItems.add(item)
+            when (cell.state) {
+                is CellState.Given -> givenItems.add(item)
+                CellState.Empty -> Unit
+                is CellState.Entered -> {
+                    if (cell.isCorrect()) correctItems.add(item) else incorrectItems.add(item)
+                }
             }
         }
 

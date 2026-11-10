@@ -5,7 +5,13 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.nghianguyen.sudoku.model.CellState
+import com.nghianguyen.sudoku.model.Column
+import com.nghianguyen.sudoku.model.Digit
 import com.nghianguyen.sudoku.model.DigitCell
+import com.nghianguyen.sudoku.model.EMPTY_CELL_VALUE
+import com.nghianguyen.sudoku.model.Row
+import com.nghianguyen.sudoku.model.digit
 
 @Entity(
     tableName = "cell",
@@ -37,11 +43,15 @@ fun List<CellEntity>.toDomain(): List<DigitCell> {
 fun CellEntity.toDomain(): DigitCell {
     return DigitCell(
         id = id,
-        current = current,
+        state =
+            when {
+                current == EMPTY_CELL_VALUE -> CellState.Empty
+                isGiven -> CellState.Given(Digit(current))
+                else -> CellState.Entered(Digit(current))
+            },
         solution = solution,
-        row = row,
-        col = col,
-        isGiven = isGiven,
+        row = Row(row),
+        col = Column(col),
     )
 }
 
@@ -53,10 +63,10 @@ fun DigitCell.toEntity(gameId: Long): CellEntity {
     return CellEntity(
         id = id,
         gameId = gameId,
-        current = current,
+        current = state.digit?.value ?: EMPTY_CELL_VALUE,
         solution = solution,
-        row = row,
-        col = col,
-        isGiven = isGiven,
+        row = row.value,
+        col = col.value,
+        isGiven = state is CellState.Given,
     )
 }

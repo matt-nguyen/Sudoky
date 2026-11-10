@@ -29,6 +29,10 @@ dependencies {
 
 gradlePlugin {
     plugins {
+        register("jvmLibrary") {
+            id = "sudoky.jvm.library"
+            implementationClass = "com.nghianguyen.buildlogic.JvmLibraryConventionPlugin"
+        }
         register("quality") {
             id = "sudoky.quality"
             implementationClass = "com.nghianguyen.buildlogic.QualityConventionPlugin"

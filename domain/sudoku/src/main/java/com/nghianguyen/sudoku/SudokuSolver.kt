@@ -1,14 +1,18 @@
 package com.nghianguyen.sudoku
 
-import android.util.Log
 import com.nghianguyen.sudoku.model.BOX_SIZE
+import com.nghianguyen.sudoku.model.CellState
+import com.nghianguyen.sudoku.model.Column
+import com.nghianguyen.sudoku.model.Digit
 import com.nghianguyen.sudoku.model.DigitCell
 import com.nghianguyen.sudoku.model.EMPTY_CELL_VALUE
 import com.nghianguyen.sudoku.model.GRID_SIZE
 import com.nghianguyen.sudoku.model.MAX_DIGIT
 import com.nghianguyen.sudoku.model.MIN_DIGIT
+import com.nghianguyen.sudoku.model.Row
 import com.nghianguyen.sudoku.model.ScannedDigitCell
 import com.nghianguyen.sudoku.model.TOTAL_CELLS
+import com.nghianguyen.sudoku.model.digit
 
 /** Provides logic for processing scanned Sudoku digits and solving Sudoku puzzles. */
 class SudokuSolver {
@@ -22,20 +26,14 @@ class SudokuSolver {
      */
     // TODO extract this method out of SudokuSolver
     fun buildSudokuGrid(scannedDigits: List<ScannedDigitCell>): List<DigitCell> {
-        Log.d("SudokuSolver", "buildSudokuGrid")
         val digits = mutableListOf<DigitCell>()
 
         // Adding given cells
         val scanned = Array(GRID_SIZE) { IntArray(GRID_SIZE) }
         for (scannedDigit in scannedDigits) {
             val digit = scannedDigit.digit.toIntOrNull()
-            if (digit == null) {
-                Log.d(
-                    "SudokuSolver",
-                    "${scannedDigit.digit} is not a digit, on row ${scannedDigit.row}, col ${scannedDigit.col}",
-                )
-            }
-            scanned[scannedDigit.row][scannedDigit.col] = digit ?: EMPTY_CELL_VALUE
+            scanned[scannedDigit.row][scannedDigit.col] =
+                digit?.takeIf { it in MIN_DIGIT..MAX_DIGIT } ?: EMPTY_CELL_VALUE
         }
 
         // Filling in the rest with 0s
@@ -45,11 +43,12 @@ class SudokuSolver {
                 digits.add(
                     DigitCell(
                         id = 0,
-                        current = digit,
+                        state =
+                            if (digit == EMPTY_CELL_VALUE) CellState.Empty
+                            else CellState.Given(Digit(digit)),
                         solution = 0,
-                        row = row,
-                        col = col,
-                        isGiven = digit > 0,
+                        row = Row(row),
+                        col = Column(col),
                     )
                 )
             }
@@ -72,7 +71,9 @@ class SudokuSolver {
 
             // Convert to 2D grid
             val board = Array(GRID_SIZE) { IntArray(GRID_SIZE) }
-            cells.forEach { cell -> board[cell.row][cell.col] = cell.current }
+            cells.forEach { cell ->
+                board[cell.row.value][cell.col.value] = cell.state.digit?.value ?: EMPTY_CELL_VALUE
+            }
 
             // Solve the puzzle
             val solved = solve(board)
@@ -81,7 +82,7 @@ class SudokuSolver {
             }
 
             // Return updated list with solutionDigit filled
-            cells.map { cell -> cell.copy(solution = board[cell.row][cell.col]) }
+            cells.map { cell -> cell.copy(solution = board[cell.row.value][cell.col.value]) }
         }
     }
 

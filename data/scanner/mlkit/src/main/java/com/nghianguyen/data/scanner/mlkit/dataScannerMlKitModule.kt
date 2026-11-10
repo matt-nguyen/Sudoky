@@ -8,5 +8,5 @@ import org.koin.dsl.module
 
 val dataScannerMlKitModule = module {
     single<TextRecognizer> { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
-    single<SudokuScanner> { SudokuScannerImpl(get()) }
+    single<SudokuScanner> { SudokuScannerImpl(get(), get()) }
 }

@@ -1,24 +1,10 @@
 plugins {
-    id("sudoky.android.library")
-}
-
-android {
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro",
-            )
-        }
-    }
+    id("sudoky.jvm.library")
 }
 
 dependencies {
     implementation(project(":core:domain"))
     implementation(libs.kotlin.result)
-
-    implementation(libs.androidx.core.ktx)
+    implementation(libs.kotlinx.coroutines.core)
     testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
 }
