@@ -5,6 +5,7 @@ import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
 import com.nghianguyen.feature.viewmodel.BaseViewModel
 import com.nghianguyen.sudoku.SudokuGameRepository
+import com.nghianguyen.sudoku.SudokuGridBuilder
 import com.nghianguyen.sudoku.SudokuSolver
 import com.nghianguyen.sudoku.model.CellState
 import com.nghianguyen.sudoku.model.ScannedDigitCell
@@ -15,10 +16,12 @@ import com.nghianguyen.ui.component.sudokugrid.toDigitCellItems
  * ViewModel for the puzzle confirmation screen. Responsible for validating the scanned Sudoku
  * puzzle and creating a new game session.
  *
- * @property sudokuSolver Utility for building and solving the Sudoku grid.
+ * @property sudokuGridBuilder Utility for building the Sudoku grid from scanned digits.
+ * @property sudokuSolver Utility for solving the Sudoku grid.
  * @property sudokuGameRepository Repository for managing Sudoku game data.
  */
 class ConfirmViewModel(
+    private val sudokuGridBuilder: SudokuGridBuilder,
     private val sudokuSolver: SudokuSolver,
     private val sudokuGameRepository: SudokuGameRepository,
 ) : BaseViewModel<ConfirmScreenState, ConfirmAction, ConfirmEvent>() {
@@ -38,7 +41,7 @@ class ConfirmViewModel(
      * @param scannedDigits The list of digits detected by the scanner.
      */
     fun setScannedDigits(scannedDigits: List<ScannedDigitCell>) {
-        val buildSudokuGrid = sudokuSolver.buildSudokuGrid(scannedDigits)
+        val buildSudokuGrid = sudokuGridBuilder.buildSudokuGrid(scannedDigits)
 
         sudokuSolver
             .solveBoard(buildSudokuGrid)
