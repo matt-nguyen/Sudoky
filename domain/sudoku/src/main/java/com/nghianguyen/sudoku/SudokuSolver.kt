@@ -7,6 +7,7 @@ import com.nghianguyen.sudoku.model.GRID_SIZE
 import com.nghianguyen.sudoku.model.MAX_DIGIT
 import com.nghianguyen.sudoku.model.MIN_DIGIT
 import com.nghianguyen.sudoku.model.TOTAL_CELLS
+import com.nghianguyen.sudoku.model.digit
 
 /** Provides logic for solving Sudoku puzzles. */
 class SudokuSolver {

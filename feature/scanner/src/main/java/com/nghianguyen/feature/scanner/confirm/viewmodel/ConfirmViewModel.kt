@@ -1,13 +1,16 @@
 package com.nghianguyen.feature.scanner.confirm.viewmodel
 
 import android.util.Log
+import com.github.michaelbull.result.onErr
 import com.github.michaelbull.result.onFailure
+import com.github.michaelbull.result.onOk
 import com.github.michaelbull.result.onSuccess
 import com.nghianguyen.feature.viewmodel.BaseViewModel
-import com.nghianguyen.sudoku.SudokuGameRepository
-import com.nghianguyen.sudoku.SudokuGridBuilder
-import com.nghianguyen.sudoku.SudokuSolver
+import com.nghianguyen.sudoku.CreateSudokuGameUseCase
+import com.nghianguyen.sudoku.PrepareScannedSudokuUseCase
+import com.nghianguyen.sudoku.PreparedSudoku
 import com.nghianguyen.sudoku.model.CellState
+import com.nghianguyen.sudoku.model.DigitCell
 import com.nghianguyen.sudoku.model.ScannedDigitCell
 import com.nghianguyen.ui.component.sudokugrid.SudokuGridState
 import com.nghianguyen.ui.component.sudokugrid.toDigitCellItems
@@ -16,23 +19,18 @@ import com.nghianguyen.ui.component.sudokugrid.toDigitCellItems
  * ViewModel for the puzzle confirmation screen. Responsible for validating the scanned Sudoku
  * puzzle and creating a new game session.
  *
- * @property sudokuGridBuilder Utility for building the Sudoku grid from scanned digits.
- * @property sudokuSolver Utility for solving the Sudoku grid.
- * @property sudokuGameRepository Repository for managing Sudoku game data.
+ * @property prepareScannedSudokuUseCase Use case for building and solving the scanned Sudoku grid.
+ * @property createSudokuGame Use case for creating a game from a prepared Sudoku puzzle.
  */
 class ConfirmViewModel(
-    private val sudokuGridBuilder: SudokuGridBuilder,
-    private val sudokuSolver: SudokuSolver,
-    private val sudokuGameRepository: SudokuGameRepository,
+    private val prepareScannedSudokuUseCase: PrepareScannedSudokuUseCase,
+    private val createSudokuGame: CreateSudokuGameUseCase,
 ) : BaseViewModel<ConfirmScreenState, ConfirmAction, ConfirmEvent>() {
+    private var preparedSudoku: PreparedSudoku? = null
     private val logTag = "ConfirmViewModel"
 
     override fun buildInitialState(): ConfirmScreenState =
         ConfirmScreenState(emptyList(), SudokuGridState(), false)
-
-    override suspend fun onStart() {
-        // No-op
-    }
 
     /**
      * Initializes the state with the list of scanned digits. Attempts to solve the board to verify
@@ -40,32 +38,28 @@ class ConfirmViewModel(
      *
      * @param scannedDigits The list of digits detected by the scanner.
      */
-    fun setScannedDigits(scannedDigits: List<ScannedDigitCell>) {
-        val buildSudokuGrid = sudokuGridBuilder.buildSudokuGrid(scannedDigits)
+    fun prepareScannedSudoku(scannedDigits: List<ScannedDigitCell>) {
+        preparedSudoku = null
+        prepareScannedSudokuUseCase(scannedDigits)
+            .onOk { puzzle ->
+                preparedSudoku = puzzle
+                showPuzzle(puzzle.cells, isValid = true)
+            }
+            .onErr { failure ->
+                Log.e(logTag, "Puzzle preparation failed", failure.cause)
+                showPuzzle(failure.cells, isValid = false)
+            }
+    }
 
-        sudokuSolver
-            .solveBoard(buildSudokuGrid)
-            .onSuccess { digits ->
-                val givenItems = digits.filter { it.state is CellState.Given }.toDigitCellItems()
-                updateState {
-                    copy(
-                        digits = digits,
-                        sudokuGridState = sudokuGridState.copy(givenItems = givenItems),
-                        isValid = true,
-                    )
-                }
-            }
-            .onFailure {
-                Log.e(logTag, "solveBoard failed", it)
-                val givenItems = buildSudokuGrid.filter { it.state is CellState.Given }.toDigitCellItems()
-                updateState {
-                    copy(
-                        digits = buildSudokuGrid,
-                        sudokuGridState = sudokuGridState.copy(givenItems = givenItems),
-                        isValid = false,
-                    )
-                }
-            }
+    private fun showPuzzle(digits: List<DigitCell>, isValid: Boolean) {
+        val givenItems = digits.filter { it.state is CellState.Given }.toDigitCellItems()
+        updateState {
+            copy(
+                digits = digits,
+                sudokuGridState = sudokuGridState.copy(givenItems = givenItems),
+                isValid = isValid,
+            )
+        }
     }
 
     override fun handleAction(action: ConfirmAction) {
@@ -76,11 +70,10 @@ class ConfirmViewModel(
     }
 
     private fun confirmSudoku() {
-        if (!uiState.value.isValid) return
+        val newSudoku = preparedSudoku ?: return
 
         launch {
-            sudokuGameRepository
-                .newGame(uiState.value.digits)
+            createSudokuGame(newSudoku)
                 .onSuccess {
                     Log.d(logTag, "new game id: $it")
                     sendEvent(ConfirmEvent.ConfirmedGame(it))

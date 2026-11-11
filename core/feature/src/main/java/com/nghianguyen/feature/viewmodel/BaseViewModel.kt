@@ -37,7 +37,7 @@ abstract class BaseViewModel<STATE, ACTION, EVENT> : ViewModel() {
      * Called when the [uiState] flows are first collected. Use this to trigger any initial data
      * loading or start observing other flows.
      */
-    protected abstract suspend fun onStart()
+    protected open suspend fun onStart() { /* No-op */ }
 
     /**
      * Handles an incoming user [ACTION].
