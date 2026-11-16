@@ -8,7 +8,7 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 val dataSudokuRoomModule = module {
-    single<GameLocalDataSource> { GameLocalDataSourceImpl(get(), get()) }
+    single<GameLocalDataSource> { GameLocalDataSourceImpl(get(), get(), get()) }
     single<GameDao> { get<SudokuDatabase>().gameDao() }
     single<CellDao> { get<SudokuDatabase>().cellDao() }
     single<SudokuDatabase> { SudokuDatabase.getInstance(androidContext()) }

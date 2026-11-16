@@ -26,11 +26,14 @@ interface GameLocalDataSource {
     suspend fun newGame(digitCells: List<DigitCell>): Result<Long, Error>
 
     /**
-     * Updates an existing [game].
-     *
-     * @param game The game to update.
+     * Atomically reads the latest game, applies [transform], and saves it on success.
+     * Returns GameNotFound if the game no longer exists. The transform must be pure
+     * and preserve the game identity.
      */
-    suspend fun updateGame(game: SudokuGame): Result<Unit, Error>
+    suspend fun updateGame(
+        gameId: Long,
+        transform: (SudokuGame) -> Result<SudokuGame, Error>,
+    ): Result<Unit, Error>
 
     /**
      * Deletes the specified [game].

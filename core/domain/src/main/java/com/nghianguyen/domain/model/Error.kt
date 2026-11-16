@@ -17,6 +17,9 @@ enum class SudokuScanError : Error {
 
 /** Represents errors that can occur during Sudoku game logic execution. */
 sealed interface SudokuGameError : Error {
+    /** The requested game does not exist or has been deleted. */
+    data class GameNotFound(val gameId: Long) : SudokuGameError
+
     /**
      * Indicates an invalid coordinate (row or column) was provided.
      *

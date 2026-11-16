@@ -6,12 +6,14 @@ import com.github.michaelbull.result.get
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
 import com.nghianguyen.feature.viewmodel.BaseViewModel
+import com.nghianguyen.sudoku.EnterSudokuDigitUseCase
 import com.nghianguyen.sudoku.SudokuGameRepository
 import com.nghianguyen.sudoku.model.CellState
 import com.nghianguyen.sudoku.model.DigitCell
 import com.nghianguyen.ui.component.sudokugrid.DigitCellItem
 import com.nghianguyen.ui.component.sudokugrid.SudokuGridState
 import com.nghianguyen.ui.component.sudokugrid.toDigitCellItem
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -24,9 +26,14 @@ import kotlinx.coroutines.flow.stateIn
  * ViewModel for the Play screen, responsible for managing the state and logic of a Sudoku game.
  *
  * @param gameId The ID of the Sudoku game to play.
- * @param sudokuGameRepository Repository for accessing and updating Sudoku game data.
+ * @param sudokuGameRepository Repository for observing and deleting Sudoku games.
+ * @param enterSudokuDigit Use case for atomically entering a digit.
  */
-class PlayViewModel(gameId: Long, private val sudokuGameRepository: SudokuGameRepository) :
+class PlayViewModel(
+    private val gameId: Long,
+    private val sudokuGameRepository: SudokuGameRepository,
+    private val enterSudokuDigit: EnterSudokuDigitUseCase,
+) :
     BaseViewModel<PlayAction, PlayEvent>() {
     private val logTag = "PlayViewModel"
 
@@ -47,11 +54,28 @@ class PlayViewModel(gameId: Long, private val sudokuGameRepository: SudokuGameRe
             state.withDigitCells(game.cells).copy(showFinishedDialog = game.isFinished())
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), _uiState.value)
 
+    // Queue synchronously at the action boundary so rapid taps retain their order.
+    private val digitEntries = Channel<PlayAction.OnDigitEntered>(Channel.UNLIMITED)
+
+    init {
+        launch {
+            for (entry in digitEntries) {
+                enterSudokuDigit(gameId, entry.digit, entry.row, entry.col)
+                    .onFailure { Log.d(logTag, "Error entering digit: $it") }
+            }
+        }
+    }
+
+    override fun onCleared() {
+        digitEntries.cancel()
+        super.onCleared()
+    }
+
     override fun handleAction(action: PlayAction) {
         Log.d(logTag, "handleAction: $action")
         when (action) {
             is PlayAction.OnDigitEntered -> {
-                enterDigit(action.digit, action.row, action.col)
+                digitEntries.trySend(action)
             }
             PlayAction.OnDeleteGame -> {
                 deleteGameAndExit()
@@ -87,22 +111,6 @@ class PlayViewModel(gameId: Long, private val sudokuGameRepository: SudokuGameRe
                     givenItems = givenItems,
                 ),
         )
-    }
-
-    /** Updates the current game with the [digit] entered at the specified [row] and [col]. */
-    private fun enterDigit(digit: Int, row: Int, col: Int) {
-        launch {
-            currentGame
-                .firstOrNull()
-                ?.onSuccess { game ->
-                    game?.let {
-                        it.setDigit(digit, row, col)
-                            .onSuccess { sudokuGameRepository.updateGame(it) }
-                            .onFailure { Log.d(logTag, "Error updating game: $it") }
-                    }
-                }
-                ?.onFailure{ Log.d(logTag, "Error getting game: $it") }
-        }
     }
 
     /** Deletes the current game and notifies the UI to exit the Play screen. */

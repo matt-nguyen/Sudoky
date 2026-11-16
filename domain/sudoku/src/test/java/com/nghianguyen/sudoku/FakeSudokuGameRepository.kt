@@ -3,6 +3,9 @@ package com.nghianguyen.sudoku
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.get
+import com.github.michaelbull.result.map
+import com.nghianguyen.domain.model.SudokuGameError
 import com.nghianguyen.domain.model.Error
 import com.nghianguyen.sudoku.model.DigitCell
 import com.nghianguyen.sudoku.model.SudokuGame
@@ -30,9 +33,17 @@ class FakeSudokuGameRepository : SudokuGameRepository {
         return Ok(id)
     }
 
-    override suspend fun updateGame(game: SudokuGame): Result<Unit, Error> {
-        games.update { if (game.id in it) it + (game.id to game) else it }
-        return Ok(Unit)
+    override suspend fun updateGame(
+        gameId: Long,
+        transform: (SudokuGame) -> Result<SudokuGame, Error>,
+    ): Result<Unit, Error> {
+        while (true) {
+            val snapshot = games.value
+            val game = snapshot[gameId] ?: return Err(SudokuGameError.GameNotFound(gameId))
+            val result = transform(game)
+            val updated = result.get() ?: return result.map { Unit }
+            if (games.compareAndSet(snapshot, snapshot + (gameId to updated))) return Ok(Unit)
+        }
     }
 
     override suspend fun deleteGame(game: SudokuGame): Result<Unit, Error> {
