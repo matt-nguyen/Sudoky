@@ -106,7 +106,7 @@ fun EntryProviderScope<NavKey>.entryScannerConfirm(
 
         val confirmViewModel: ConfirmViewModel = koinViewModel()
         val state by confirmViewModel.uiState.collectAsStateWithLifecycle()
-        LaunchedEffect(scannedDigits) { confirmViewModel.setScannedDigits(scannedDigits) }
+        LaunchedEffect(scannedDigits) { confirmViewModel.prepareScannedSudoku(scannedDigits) }
         ConfirmScreen(
             state = state,
             event = confirmViewModel.uiEvent,

@@ -2,12 +2,17 @@ package com.nghianguyen.feature.scanner.camera.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.viewModelScope
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
 import com.nghianguyen.feature.scanner.camera.CameraManager
 import com.nghianguyen.feature.viewmodel.BaseViewModel
 import com.nghianguyen.sudoku.SudokuScanner
 import com.nghianguyen.sudoku.model.ScanImage
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 
 /**
  * ViewModel for the camera scanning screen. Orchestrates the camera lifecycle, photo capture, and
@@ -19,18 +24,14 @@ import com.nghianguyen.sudoku.model.ScanImage
 class CameraViewModel(
     private val cameraManager: CameraManager,
     private val sudokuScanner: SudokuScanner,
-) : BaseViewModel<CameraScreenState, CameraAction, CameraEvent>() {
+) : BaseViewModel<CameraAction, CameraEvent>() {
     private val logTag = "CameraViewModel"
 
-    override fun buildInitialState(): CameraScreenState = CameraScreenState(null)
-
-    override suspend fun onStart() {
-        launch {
-            cameraManager.surfaceRequest.collect { surfaceRequest ->
-                updateState { copy(surfaceRequest = surfaceRequest) }
-            }
-        }
-    }
+    private val _uiState = MutableStateFlow(CameraScreenState(null))
+    val uiState =
+        combine(_uiState, cameraManager.surfaceRequest) { state, surfaceRequest ->
+            state.copy(surfaceRequest = surfaceRequest)
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), _uiState.value)
 
     override fun handleAction(action: CameraAction) {
         Log.d(logTag, "handleAction: $action")
