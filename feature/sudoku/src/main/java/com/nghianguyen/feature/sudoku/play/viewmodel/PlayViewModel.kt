@@ -2,6 +2,7 @@ package com.nghianguyen.feature.sudoku.play.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope
+import com.github.michaelbull.result.get
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
 import com.nghianguyen.feature.viewmodel.BaseViewModel
@@ -29,30 +30,21 @@ class PlayViewModel(gameId: Long, private val sudokuGameRepository: SudokuGameRe
     BaseViewModel<PlayAction, PlayEvent>() {
     private val logTag = "PlayViewModel"
 
-    private val _uiState = MutableStateFlow(PlayScreenState(emptyList()))
+    private val _uiState = MutableStateFlow(PlayScreenState())
 
     private val currentGame =
         sudokuGameRepository
             .getGame(gameId)
             .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 1)
 
-    private val gameCells = currentGame.mapNotNull { gameResult ->
-        var cells: List<DigitCell>? = null
+    private val observedGame = currentGame.mapNotNull { gameResult ->
         gameResult
-            .onSuccess { game ->
-                if (game == null) return@onSuccess
-                cells = game.cells
-                if (game.isFinished()) {
-                    Log.d(logTag, "Game finished")
-                    sendEvent(PlayEvent.GameFinished)
-                }
-            }
             .onFailure { Log.d(logTag, "Error getting game: $it") }
-        cells
+            .get()
     }
     val uiState =
-        combine(_uiState, gameCells) { state, cells ->
-            state.withDigitCells(cells)
+        combine(_uiState, observedGame) { state, game ->
+            state.withDigitCells(game.cells).copy(showFinishedDialog = game.isFinished())
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), _uiState.value)
 
     override fun handleAction(action: PlayAction) {
@@ -88,7 +80,6 @@ class PlayViewModel(gameId: Long, private val sudokuGameRepository: SudokuGameRe
         }
 
         return copy(
-            digits = digitCells,
             sudokuGridState =
                 SudokuGridState(
                     correctItems = correctItems,

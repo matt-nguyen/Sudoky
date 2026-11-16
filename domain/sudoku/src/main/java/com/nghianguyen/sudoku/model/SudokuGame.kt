@@ -16,10 +16,11 @@ data class SudokuGame(val id: Long, val cells: List<DigitCell>) {
     /**
      * Checks if the game is successfully finished.
      *
-     * @return True if every cell in the grid matches its solution value.
+     * @return True if all 81 positions are present and every cell matches its solution value.
      */
     fun isFinished(): Boolean {
-        return cells.all { it.isCorrect() }
+        return cells.size == TOTAL_CELLS &&
+            cells.all { it.isCorrect() }
     }
 
     /**
