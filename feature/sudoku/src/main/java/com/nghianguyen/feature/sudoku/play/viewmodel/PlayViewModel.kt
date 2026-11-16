@@ -11,9 +11,13 @@ import com.nghianguyen.sudoku.model.DigitCell
 import com.nghianguyen.ui.component.sudokugrid.DigitCellItem
 import com.nghianguyen.ui.component.sudokugrid.SudokuGridState
 import com.nghianguyen.ui.component.sudokugrid.toDigitCellItem
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.stateIn
 
 /**
  * ViewModel for the Play screen, responsible for managing the state and logic of a Sudoku game.
@@ -22,34 +26,34 @@ import kotlinx.coroutines.flow.shareIn
  * @param sudokuGameRepository Repository for accessing and updating Sudoku game data.
  */
 class PlayViewModel(gameId: Long, private val sudokuGameRepository: SudokuGameRepository) :
-    BaseViewModel<PlayScreenState, PlayAction, PlayEvent>() {
+    BaseViewModel<PlayAction, PlayEvent>() {
     private val logTag = "PlayViewModel"
 
-    override fun buildInitialState() = PlayScreenState(emptyList())
+    private val _uiState = MutableStateFlow(PlayScreenState(emptyList()))
 
     private val currentGame =
         sudokuGameRepository
             .getGame(gameId)
             .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 1)
 
-    override suspend fun onStart() {
-        launch {
-            currentGame.collect { gameResult ->
-                gameResult
-                    .onSuccess { game ->
-                        val digitCells = game?.cells ?: return@onSuccess
-
-                        onDigitCells(digitCells)
-
-                        if (game.isFinished()) {
-                            Log.d(logTag, "Game finished")
-                            sendEvent(PlayEvent.GameFinished)
-                        }
-                    }
-                    .onFailure{ Log.d(logTag, "Error getting game: $it") }
+    private val gameCells = currentGame.mapNotNull { gameResult ->
+        var cells: List<DigitCell>? = null
+        gameResult
+            .onSuccess { game ->
+                if (game == null) return@onSuccess
+                cells = game.cells
+                if (game.isFinished()) {
+                    Log.d(logTag, "Game finished")
+                    sendEvent(PlayEvent.GameFinished)
+                }
             }
-        }
+            .onFailure { Log.d(logTag, "Error getting game: $it") }
+        cells
     }
+    val uiState =
+        combine(_uiState, gameCells) { state, cells ->
+            state.withDigitCells(cells)
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), _uiState.value)
 
     override fun handleAction(action: PlayAction) {
         Log.d(logTag, "handleAction: $action")
@@ -64,10 +68,10 @@ class PlayViewModel(gameId: Long, private val sudokuGameRepository: SudokuGameRe
     }
 
     /**
-     * Updates the UI state based on the provided list of [DigitCell]s. Categorizes cells into
+     * Maps the UI state using the provided list of [DigitCell]s. Categorizes cells into
      * given, correct, and incorrect for visual representation.
      */
-    private fun onDigitCells(digitCells: List<DigitCell>) {
+    private fun PlayScreenState.withDigitCells(digitCells: List<DigitCell>): PlayScreenState {
         val givenItems = mutableListOf<DigitCellItem>()
         val correctItems = mutableListOf<DigitCellItem>()
         val incorrectItems = mutableListOf<DigitCellItem>()
@@ -83,17 +87,15 @@ class PlayViewModel(gameId: Long, private val sudokuGameRepository: SudokuGameRe
             }
         }
 
-        updateState {
-            copy(
-                digits = digitCells,
-                sudokuGridState =
-                    SudokuGridState(
-                        correctItems = correctItems,
-                        incorrectItems = incorrectItems,
-                        givenItems = givenItems,
-                    ),
-            )
-        }
+        return copy(
+            digits = digitCells,
+            sudokuGridState =
+                SudokuGridState(
+                    correctItems = correctItems,
+                    incorrectItems = incorrectItems,
+                    givenItems = givenItems,
+                ),
+        )
     }
 
     /** Updates the current game with the [digit] entered at the specified [row] and [col]. */

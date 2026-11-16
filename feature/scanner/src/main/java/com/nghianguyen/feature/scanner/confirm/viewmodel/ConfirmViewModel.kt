@@ -14,6 +14,9 @@ import com.nghianguyen.sudoku.model.DigitCell
 import com.nghianguyen.sudoku.model.ScannedDigitCell
 import com.nghianguyen.ui.component.sudokugrid.SudokuGridState
 import com.nghianguyen.ui.component.sudokugrid.toDigitCellItems
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 /**
  * ViewModel for the puzzle confirmation screen. Responsible for validating the scanned Sudoku
@@ -25,12 +28,13 @@ import com.nghianguyen.ui.component.sudokugrid.toDigitCellItems
 class ConfirmViewModel(
     private val prepareScannedSudokuUseCase: PrepareScannedSudokuUseCase,
     private val createSudokuGame: CreateSudokuGameUseCase,
-) : BaseViewModel<ConfirmScreenState, ConfirmAction, ConfirmEvent>() {
+) : BaseViewModel<ConfirmAction, ConfirmEvent>() {
     private var preparedSudoku: PreparedSudoku? = null
     private val logTag = "ConfirmViewModel"
 
-    override fun buildInitialState(): ConfirmScreenState =
-        ConfirmScreenState(emptyList(), SudokuGridState(), false)
+    private val _uiState =
+        MutableStateFlow(ConfirmScreenState(emptyList(), SudokuGridState(), false))
+    val uiState = _uiState.asStateFlow()
 
     /**
      * Initializes the state with the list of scanned digits. Attempts to solve the board to verify
@@ -53,10 +57,10 @@ class ConfirmViewModel(
 
     private fun showPuzzle(digits: List<DigitCell>, isValid: Boolean) {
         val givenItems = digits.filter { it.state is CellState.Given }.toDigitCellItems()
-        updateState {
-            copy(
+        _uiState.update { state ->
+            state.copy(
                 digits = digits,
-                sudokuGridState = sudokuGridState.copy(givenItems = givenItems),
+                sudokuGridState = state.sudokuGridState.copy(givenItems = givenItems),
                 isValid = isValid,
             )
         }
