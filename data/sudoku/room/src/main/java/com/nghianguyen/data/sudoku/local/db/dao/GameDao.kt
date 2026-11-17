@@ -18,10 +18,6 @@ interface GameDao {
     @Query("SELECT * FROM game WHERE id = :id")
     fun getGame(id: Long): Flow<GameWithCells?>
 
-    @Transaction
-    @Query("SELECT * FROM game WHERE id = :id")
-    suspend fun getGameOnce(id: Long): GameWithCells?
-
     @Insert suspend fun insertGame(entity: GameEntity): Long
 
     @Delete suspend fun deleteGame(entity: GameEntity)

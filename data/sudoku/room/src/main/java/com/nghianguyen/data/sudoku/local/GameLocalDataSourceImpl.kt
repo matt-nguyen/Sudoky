@@ -55,7 +55,6 @@ class GameLocalDataSourceImpl(
         transform: (SudokuGame) -> Result<SudokuGame, Error>,
     ): Result<Unit, Error> = runCatching {
         database.withTransaction {
-//            val game = gameDao.getGameOnce(gameId)?.toDomain()
             val game = gameDao.getGame(gameId).firstOrNull()?.toDomain()
                 ?: return@withTransaction Err(SudokuGameError.GameNotFound(gameId))
             transform(game).map { updated ->
