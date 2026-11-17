@@ -25,10 +25,10 @@ class SudokuGameRepositoryImpl(private val localDataSource: GameLocalDataSource)
         return localDataSource.newGame(digitCells)
     }
 
-    override suspend fun updateGame(game: SudokuGame): Result<Unit, Error> {
-        Log.d("SudokuGameRepositoryImpl", "updateGame: ${game.id}")
-        return localDataSource.updateGame(game)
-    }
+    override suspend fun updateGame(
+        gameId: Long,
+        transform: (SudokuGame) -> Result<SudokuGame, Error>,
+    ): Result<Unit, Error> = localDataSource.updateGame(gameId, transform)
 
     override suspend fun deleteGame(game: SudokuGame): Result<Unit, Error> {
         Log.d("SudokuGameRepositoryImpl", "deleteGame: ${game.id}")

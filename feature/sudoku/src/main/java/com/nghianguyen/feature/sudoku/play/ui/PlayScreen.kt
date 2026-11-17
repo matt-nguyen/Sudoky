@@ -10,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -37,18 +36,12 @@ fun PlayScreen(
     onAction: (PlayAction) -> Unit,
     onScreenResult: (PlayScreenResult) -> Unit,
 ) {
-    var showFinishedDialog by remember { mutableStateOf(false) }
-
     val spacing = LocalSpacing.current
 
     LaunchedEffect(event) {
         event.collect {
             when (it) {
-                PlayEvent.GameFinished -> {
-                    showFinishedDialog = true
-                }
                 PlayEvent.GameDeleted -> {
-                    showFinishedDialog = false
                     onScreenResult(PlayScreenResult.Exit)
                 }
             }
@@ -73,7 +66,7 @@ fun PlayScreen(
             )
         }
 
-        if (showFinishedDialog) {
+        if (state.showFinishedDialog) {
             FinishedGameDialog(onDismiss = { onAction(PlayAction.OnDeleteGame) })
         }
     }

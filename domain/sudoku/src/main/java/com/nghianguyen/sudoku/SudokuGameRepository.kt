@@ -37,12 +37,14 @@ interface SudokuGameRepository {
     suspend fun newGame(digitCells: List<DigitCell>): Result<Long, Error>
 
     /**
-     * Updates an existing [SudokuGame].
-     *
-     * @param game The game object containing updated state.
-     * @return A [Result] indicating success or an [Error].
+     * Atomically reads the latest game, applies [transform], and saves it on success.
+     * Returns GameNotFound if the game no longer exists. The transform must be pure
+     * and preserve the game identity.
      */
-    suspend fun updateGame(game: SudokuGame): Result<Unit, Error>
+    suspend fun updateGame(
+        gameId: Long,
+        transform: (SudokuGame) -> Result<SudokuGame, Error>,
+    ): Result<Unit, Error>
 
     /**
      * Deletes a [SudokuGame] from the repository.
