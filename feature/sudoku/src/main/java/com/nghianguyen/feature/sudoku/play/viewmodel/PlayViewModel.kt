@@ -6,6 +6,7 @@ import com.github.michaelbull.result.get
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
 import com.nghianguyen.feature.viewmodel.BaseViewModel
+import com.nghianguyen.sudoku.EditSudokuNotesUseCase
 import com.nghianguyen.sudoku.EnterSudokuDigitUseCase
 import com.nghianguyen.sudoku.SudokuGameRepository
 import com.nghianguyen.sudoku.model.CellState
@@ -21,20 +22,22 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 
 /**
  * ViewModel for the Play screen, responsible for managing the state and logic of a Sudoku game.
  *
  * @param gameId The ID of the Sudoku game to play.
  * @param sudokuGameRepository Repository for observing and deleting Sudoku games.
- * @param enterSudokuDigit Use case for atomically entering a digit.
+ * @param enterSudokuDigit Use case for atomically entering an answer.
+ * @param editSudokuNotes Use case for atomically editing candidate notes.
  */
 class PlayViewModel(
     private val gameId: Long,
     private val sudokuGameRepository: SudokuGameRepository,
     private val enterSudokuDigit: EnterSudokuDigitUseCase,
-) :
-    BaseViewModel<PlayAction, PlayEvent>() {
+    private val editSudokuNotes: EditSudokuNotesUseCase,
+) : BaseViewModel<PlayAction, PlayEvent>() {
     private val logTag = "PlayViewModel"
 
     private val _uiState = MutableStateFlow(PlayScreenState())
@@ -45,23 +48,34 @@ class PlayViewModel(
             .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 1)
 
     private val observedGame = currentGame.mapNotNull { gameResult ->
-        gameResult
-            .onFailure { Log.d(logTag, "Error getting game: $it") }
-            .get()
+        gameResult.onFailure { Log.d(logTag, "Error getting game: $it") }.get()
     }
     val uiState =
         combine(_uiState, observedGame) { state, game ->
-            state.withDigitCells(game.cells).copy(showFinishedDialog = game.isFinished())
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), _uiState.value)
+                state.withDigitCells(game.cells).copy(showFinishedDialog = game.isFinished())
+            }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), _uiState.value)
 
     // Queue synchronously at the action boundary so rapid taps retain their order.
-    private val digitEntries = Channel<PlayAction.OnDigitEntered>(Channel.UNLIMITED)
+    private data class KeypadEdit(
+        val digit: Int,
+        val row: Int,
+        val col: Int,
+        val notesMode: Boolean,
+    )
+
+    private val digitEntries = Channel<KeypadEdit>(Channel.UNLIMITED)
 
     init {
         launch {
             for (entry in digitEntries) {
-                enterSudokuDigit(gameId, entry.digit, entry.row, entry.col)
-                    .onFailure { Log.d(logTag, "Error entering digit: $it") }
+                val result =
+                    if (entry.notesMode) {
+                        editSudokuNotes(gameId, entry.digit, entry.row, entry.col)
+                    } else {
+                        enterSudokuDigit(gameId, entry.digit, entry.row, entry.col)
+                    }
+                result.onFailure { Log.d(logTag, "Error applying keypad edit: $it") }
             }
         }
     }
@@ -75,17 +89,33 @@ class PlayViewModel(
         Log.d(logTag, "handleAction: $action")
         when (action) {
             is PlayAction.OnDigitEntered -> {
-                digitEntries.trySend(action)
+                enqueueKeypadEdit(action.digit)
             }
+            is PlayAction.OnCellSelected -> selectCell(action.row, action.col)
+            is PlayAction.OnNotesModeChanged -> changeNotesMode(action.enabled)
             PlayAction.OnDeleteGame -> {
                 deleteGameAndExit()
             }
         }
     }
 
+    private fun selectCell(row: Int, col: Int) {
+        _uiState.update { it.copy(selectedCell = row to col) }
+    }
+
+    private fun changeNotesMode(enabled: Boolean) {
+        _uiState.update { it.copy(notesMode = enabled) }
+    }
+
+    private fun enqueueKeypadEdit(digit: Int) {
+        val state = _uiState.value
+        val (row, col) = state.selectedCell ?: return
+        digitEntries.trySend(KeypadEdit(digit, row, col, state.notesMode))
+    }
+
     /**
-     * Maps the UI state using the provided list of [DigitCell]s. Categorizes cells into
-     * given, correct, and incorrect for visual representation.
+     * Maps the UI state using the provided list of [DigitCell]s. Categorizes cells into given,
+     * correct, and incorrect for visual representation.
      */
     private fun PlayScreenState.withDigitCells(digitCells: List<DigitCell>): PlayScreenState {
         val givenItems = mutableListOf<DigitCellItem>()
@@ -109,6 +139,12 @@ class PlayViewModel(
                     correctItems = correctItems,
                     incorrectItems = incorrectItems,
                     givenItems = givenItems,
+                    noteItems =
+                        digitCells.flatMap { cell ->
+                            cell.notes.map {
+                                DigitCellItem(it.value, cell.row.value, cell.col.value)
+                            }
+                        },
                 ),
         )
     }

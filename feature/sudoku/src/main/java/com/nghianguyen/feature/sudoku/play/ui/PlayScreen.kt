@@ -4,16 +4,22 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import com.nghianguyen.feature.sudoku.R
 import com.nghianguyen.feature.sudoku.play.viewmodel.PlayAction
 import com.nghianguyen.feature.sudoku.play.viewmodel.PlayEvent
 import com.nghianguyen.feature.sudoku.play.viewmodel.PlayScreenState
@@ -49,23 +55,22 @@ fun PlayScreen(
         }
     }
 
-
     Scaffold(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        bottomBar = {
+            Box(modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(spacing.large)) {
+                ExitButton(
+                    modifier = Modifier.align(Alignment.CenterEnd),
+                    onClick = { onScreenResult(PlayScreenResult.Exit) },
+                )
+            }
+        },
     ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            PlayContent(state = state, onAction = onAction)
-            ExitButton(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(spacing.large),
-                onClick = { onScreenResult(PlayScreenResult.Exit) },
-            )
-        }
+        PlayContent(
+            state = state,
+            onAction = onAction,
+            modifier = Modifier.padding(paddingValues),
+        )
 
         if (state.showFinishedDialog) {
             FinishedGameDialog(onDismiss = { onAction(PlayAction.OnDeleteGame) })
@@ -78,26 +83,55 @@ fun PlayScreen(
  *
  * @param state The current UI state.
  * @param onAction Callback for handling user actions.
+ * @param modifier Modifier applied to the content layout.
  */
 @Composable
-fun PlayContent(state: PlayScreenState, onAction: (PlayAction) -> Unit) {
-    var selectedRow by remember { mutableIntStateOf(0) }
-    var selectedCol by remember { mutableIntStateOf(0) }
+fun PlayContent(
+    state: PlayScreenState,
+    onAction: (PlayAction) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val spacing = LocalSpacing.current
+    val selection = state.selectedCell
+    val selectedCellDescription = selection?.let { (row, col) ->
+        val notes =
+            state.sudokuGridState.noteItems
+                .filter { it.row == row && it.col == col }
+                .map { it.digit }
+                .sorted()
+        if (notes.isEmpty()) {
+            stringResource(R.string.play_selected_cell, row + 1, col + 1)
+        } else {
+            stringResource(
+                R.string.play_selected_cell_notes,
+                row + 1,
+                col + 1,
+                notes.joinToString(),
+            )
+        }
+    }
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(spacing.medium),
+        verticalArrangement = Arrangement.spacedBy(spacing.small),
     ) {
-        SudokuGrid(state.sudokuGridState) { row, col ->
-            selectedRow = row
-            selectedCol = col
-        }
+        SudokuGrid(
+            state = state.sudokuGridState,
+            modifier =
+                Modifier.semantics { selectedCellDescription?.let { stateDescription = it } },
+            controlledSelection = true,
+            selection = selection,
+            onCellSelected = { row, col -> onAction(PlayAction.OnCellSelected(row, col)) },
+        )
+        FilterChip(
+            selected = state.notesMode,
+            onClick = { onAction(PlayAction.OnNotesModeChanged(!state.notesMode)) },
+            label = { Text(stringResource(R.string.play_notes)) },
+        )
         DigitKeypad(
-            onDigitEntered = { digit ->
-                onAction(PlayAction.OnDigitEntered(digit, selectedRow, selectedCol))
-            },
+            onDigitEntered = { digit -> onAction(PlayAction.OnDigitEntered(digit)) },
+            enabled = selection != null && !state.showFinishedDialog,
         )
     }
 }

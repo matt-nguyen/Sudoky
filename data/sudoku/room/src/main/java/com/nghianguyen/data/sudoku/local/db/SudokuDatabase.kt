@@ -1,6 +1,7 @@
 package com.nghianguyen.data.sudoku.local.db
 
 import android.content.Context
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -9,7 +10,12 @@ import com.nghianguyen.data.sudoku.local.db.dao.GameDao
 import com.nghianguyen.data.sudoku.local.db.entity.CellEntity
 import com.nghianguyen.data.sudoku.local.db.entity.GameEntity
 
-@Database(entities = [CellEntity::class, GameEntity::class], version = 1, exportSchema = true)
+@Database(
+    entities = [CellEntity::class, GameEntity::class],
+    version = 2,
+    exportSchema = true,
+    autoMigrations = [AutoMigration(from = 1, to = 2)],
+)
 abstract class SudokuDatabase : RoomDatabase() {
     abstract fun gameDao(): GameDao
 

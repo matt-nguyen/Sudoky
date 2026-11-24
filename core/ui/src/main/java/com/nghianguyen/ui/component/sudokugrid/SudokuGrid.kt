@@ -21,12 +21,16 @@ import androidx.compose.ui.text.rememberTextMeasurer
  *
  * @param state The current state of the grid, including the digits to display.
  * @param modifier The modifier applied to the grid.
+ * @param controlledSelection Whether the caller owns selection.
+ * @param selection Zero-based coordinates when selection is controlled.
  * @param onCellSelected Callback triggered when a cell is tapped, providing the (row, col) indices.
  */
 @Composable
 fun SudokuGrid(
     state: SudokuGridState,
     modifier: Modifier = Modifier,
+    controlledSelection: Boolean = false,
+    selection: Pair<Int, Int>? = null,
     onCellSelected: ((Int, Int) -> Unit)? = null,
 ) {
     // Cache digits 1-9 for both the bold given style and the regular entered styles.
@@ -34,32 +38,33 @@ fun SudokuGrid(
     val style = rememberSudokuGridStyle()
     var selectedCell by remember { mutableStateOf<Pair<Int, Int>?>(null) }
     val currentOnCellSelected by rememberUpdatedState(onCellSelected)
+    val usesControlledSelection by rememberUpdatedState(controlledSelection)
     val selectionEnabled = onCellSelected != null
 
     Canvas(
         modifier =
-            modifier.fillMaxWidth()
-                .aspectRatio(1f)
-                .background(style.backgroundColor)
-                .pointerInput(selectionEnabled) {
-                    if (selectionEnabled) {
-                        detectTapGestures { tap ->
-                            val geometry = SudokuGridGeometry(minOf(size.width, size.height).toFloat())
-                            val row = geometry.mapCoord(tap.y)
-                            val col = geometry.mapCoord(tap.x)
-                            if (row != null && col != null) {
-                                selectedCell = row to col
-                                currentOnCellSelected?.invoke(row, col)
-                            }
+            modifier.fillMaxWidth().aspectRatio(1f).background(style.backgroundColor).pointerInput(
+                selectionEnabled,
+            ) {
+                if (selectionEnabled) {
+                    detectTapGestures { tap ->
+                        val geometry = SudokuGridGeometry(minOf(size.width, size.height).toFloat())
+                        val row = geometry.mapCoord(tap.y)
+                        val col = geometry.mapCoord(tap.x)
+                        if (row != null && col != null) {
+                            if (!usesControlledSelection) selectedCell = row to col
+                            currentOnCellSelected?.invoke(row, col)
                         }
                     }
                 }
+            },
     ) {
         drawSudokuGrid(
             state = state,
             geometry = SudokuGridGeometry(minOf(size.width, size.height)),
             style = style,
-            selectedCell = selectedCell.takeIf { selectionEnabled },
+            selectedCell =
+                if (controlledSelection) selection else selectedCell.takeIf { selectionEnabled },
             textMeasurer = textMeasurer,
         )
     }

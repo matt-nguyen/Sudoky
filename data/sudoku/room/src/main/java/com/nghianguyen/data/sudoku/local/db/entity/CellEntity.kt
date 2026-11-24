@@ -10,6 +10,8 @@ import com.nghianguyen.sudoku.model.Column
 import com.nghianguyen.sudoku.model.Digit
 import com.nghianguyen.sudoku.model.DigitCell
 import com.nghianguyen.sudoku.model.EMPTY_CELL_VALUE
+import com.nghianguyen.sudoku.model.MAX_DIGIT
+import com.nghianguyen.sudoku.model.MIN_DIGIT
 import com.nghianguyen.sudoku.model.Row
 import com.nghianguyen.sudoku.model.digit
 
@@ -21,10 +23,16 @@ import com.nghianguyen.sudoku.model.digit
                 name = "unique_game_id_and_row_and_col",
                 value = ["game_id", "row", "col"],
                 unique = true,
-            )
+            ),
         ],
     foreignKeys =
-        [ForeignKey(entity = GameEntity::class, parentColumns = ["id"], childColumns = ["game_id"])],
+        [
+            ForeignKey(
+                entity = GameEntity::class,
+                parentColumns = ["id"],
+                childColumns = ["game_id"],
+            ),
+        ],
 )
 data class CellEntity(
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Long = 0,
@@ -34,6 +42,7 @@ data class CellEntity(
     @ColumnInfo(name = "row") val row: Int,
     @ColumnInfo(name = "col") val col: Int,
     @ColumnInfo(name = "is_given") val isGiven: Boolean,
+    @ColumnInfo(name = "notes", defaultValue = "0") val notes: Int = 0,
 )
 
 fun List<CellEntity>.toDomain(): List<DigitCell> {
@@ -52,6 +61,12 @@ fun CellEntity.toDomain(): DigitCell {
         solution = solution,
         row = Row(row),
         col = Column(col),
+        notes =
+            if (current == EMPTY_CELL_VALUE) {
+                (MIN_DIGIT..MAX_DIGIT).filter { notes and noteBit(it) != 0 }.map(::Digit).toSet()
+            } else {
+                emptySet()
+            },
     )
 }
 
@@ -68,5 +83,8 @@ fun DigitCell.toEntity(gameId: Long): CellEntity {
         row = row.value,
         col = col.value,
         isGiven = state is CellState.Given,
+        notes = notes.fold(0) { mask, digit -> mask or noteBit(digit.value) },
     )
 }
+
+private fun noteBit(digit: Int): Int = 1 shl (digit - MIN_DIGIT)

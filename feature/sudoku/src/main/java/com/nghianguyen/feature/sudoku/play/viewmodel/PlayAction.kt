@@ -2,14 +2,14 @@ package com.nghianguyen.feature.sudoku.play.viewmodel
 
 /** UI actions for the Play screen. */
 sealed interface PlayAction {
-    /**
-     * Triggered when a digit is entered into a specific cell.
-     *
-     * @param digit The digit entered (1-9).
-     * @param row The row index of the cell.
-     * @param col The column index of the cell.
-     */
-    data class OnDigitEntered(val digit: Int, val row: Int, val col: Int) : PlayAction
+    /** Applies a keypad digit or Clear to the current selection and mode. */
+    data class OnDigitEntered(val digit: Int) : PlayAction
+
+    /** Updates the selected position in the grid. */
+    data class OnCellSelected(val row: Int, val col: Int) : PlayAction
+
+    /** Changes whether the keypad enters notes. */
+    data class OnNotesModeChanged(val enabled: Boolean) : PlayAction
 
     /** Triggered when the user chooses to delete the current game. */
     data object OnDeleteGame : PlayAction

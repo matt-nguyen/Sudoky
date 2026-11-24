@@ -19,41 +19,78 @@ data class SudokuGame(val id: Long, val cells: List<DigitCell>) {
      * @return True if all 81 positions are present and every cell matches its solution value.
      */
     fun isFinished(): Boolean {
-        return cells.size == TOTAL_CELLS &&
-            cells.all { it.isCorrect() }
+        return cells.size == TOTAL_CELLS && cells.all { it.isCorrect() }
     }
 
-    /**
-     * Updates the value of a specific cell in the grid.
-     *
-     * @param digit The new digit to set (1-9).
-     * @param row The row index (0-8).
-     * @param col The column index (0-8).
-     * @return An [Ok] result with the updated [SudokuGame] or an [Err] if the operation is invalid.
-     */
-    fun setDigit(digit: Int, row: Int, col: Int): Result<SudokuGame, SudokuGameError> {
-        if (digit !in MIN_DIGIT..MAX_DIGIT) {
+    /** Enters an answer or clears an existing answer when [digit] is zero. */
+    fun setDigit(digit: Int, row: Int, col: Int): Result<SudokuGame, SudokuGameError> =
+        editCell(digit, row, col) { target ->
+            if (digit == EMPTY_CELL_VALUE) {
+                if (target.state == CellState.Empty) return@editCell this
+                return@editCell copy(
+                    cells =
+                        cells.map { cell ->
+                            if (cell === target) cell.copy(state = CellState.Empty) else cell
+                        },
+                )
+            }
+
+            val answer = Digit(digit)
+            copy(
+                cells =
+                    cells.map { cell ->
+                        when {
+                            cell === target ->
+                                cell.copy(state = CellState.Entered(answer), notes = emptySet())
+                            digit == target.solution &&
+                                answer in cell.notes &&
+                                cell.isPeerOf(target) -> cell.copy(notes = cell.notes - answer)
+                            else -> cell
+                        }
+                    },
+            )
+        }
+
+    /** Toggles a candidate digit, or clears all notes when [digit] is zero. */
+    fun editNotes(digit: Int, row: Int, col: Int): Result<SudokuGame, SudokuGameError> =
+        editCell(digit, row, col) { target ->
+            if (target.state != CellState.Empty) return@editCell this
+
+            val notes =
+                if (digit == EMPTY_CELL_VALUE) {
+                    emptySet()
+                } else {
+                    val note = Digit(digit)
+                    if (note in target.notes) target.notes - note else target.notes + note
+                }
+            copy(
+                cells =
+                    cells.map { cell -> if (cell === target) cell.copy(notes = notes) else cell },
+            )
+        }
+
+    private fun editCell(
+        digit: Int,
+        row: Int,
+        col: Int,
+        transform: (DigitCell) -> SudokuGame,
+    ): Result<SudokuGame, SudokuGameError> {
+        if (digit != EMPTY_CELL_VALUE && digit !in MIN_DIGIT..MAX_DIGIT) {
             return Err(SudokuGameError.InvalidDigit(digit))
         }
-        if (row !in 0 until GRID_SIZE || col !in 0 until GRID_SIZE) {
-            return Err(SudokuGameError.InvalidCoordinate(row, col))
-        }
-
-        val targetRow = Row(row)
-        val targetColumn = Column(col)
-        val index = cells.indexOfFirst { it.row == targetRow && it.col == targetColumn }
-        val targetCell =
-            cells.getOrNull(index) ?: return Err(SudokuGameError.InvalidCoordinate(row, col))
-
-        if (targetCell.state is CellState.Given) {
+        val target =
+            cells.find { it.row.value == row && it.col.value == col }
+                ?: return Err(SudokuGameError.InvalidCoordinate(row, col))
+        if (target.state is CellState.Given) {
             return Err(SudokuGameError.GivenCellModification(row, col))
         }
 
-        val updatedCells =
-            cells.toMutableList().apply {
-                set(index, targetCell.copy(state = CellState.Entered(Digit(digit))))
-            }
-
-        return Ok(copy(cells = updatedCells))
+        return Ok(transform(target))
     }
+
+    private fun DigitCell.isPeerOf(target: DigitCell): Boolean =
+        row == target.row ||
+            col == target.col ||
+            (row.value / BOX_SIZE == target.row.value / BOX_SIZE &&
+                col.value / BOX_SIZE == target.col.value / BOX_SIZE)
 }

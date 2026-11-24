@@ -6,6 +6,8 @@ plugins {
 }
 
 android {
+    testOptions { unitTests.isReturnDefaultValues = true }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -43,6 +45,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.compose.material.icons.extended)
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 }

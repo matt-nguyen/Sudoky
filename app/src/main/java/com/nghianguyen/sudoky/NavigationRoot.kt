@@ -22,6 +22,13 @@ import com.nghianguyen.feature.sudoku.nav.Play
 import com.nghianguyen.feature.sudoku.nav.entryPlay
 import com.nghianguyen.feature.sudoku.play.ui.PlayScreenResult
 
+private const val NAVIGATION_LOG_TAG = "NavigationRoot"
+
+/**
+ * Hosts the top-level back stack for the home, scanner, and Play destinations.
+ *
+ * @param startRoute The first destination on the back stack.
+ */
 @Composable
 fun NavigationRoot(startRoute: NavKey) {
     val rootBackStack = rememberNavBackStack(startRoute)
@@ -36,7 +43,7 @@ fun NavigationRoot(startRoute: NavKey) {
         entryProvider =
             entryProvider {
                 entryHome { homeScreenResult ->
-                    Log.d("NavigationRoot", "homeScreenResult: $homeScreenResult")
+                    Log.d(NAVIGATION_LOG_TAG, "homeScreenResult: $homeScreenResult")
                     when (homeScreenResult) {
                         HomeScreenResult.ScanSudoku -> {
                             rootBackStack.add(Scanner)
@@ -48,7 +55,7 @@ fun NavigationRoot(startRoute: NavKey) {
                     }
                 }
                 entryScanner { scannerNavGraphResult ->
-                    Log.d("NavigationRoot", "scannerNavGraphResult: $scannerNavGraphResult")
+                    Log.d(NAVIGATION_LOG_TAG, "scannerNavGraphResult: $scannerNavGraphResult")
                     rootBackStack.removeLastOrNull()
 
                     when (scannerNavGraphResult) {
@@ -59,7 +66,7 @@ fun NavigationRoot(startRoute: NavKey) {
                     }
                 }
                 entryPlay { playScreenResult ->
-                    Log.d("NavigationRoot", "playScreenResult: $playScreenResult")
+                    Log.d(NAVIGATION_LOG_TAG, "playScreenResult: $playScreenResult")
                     when (playScreenResult) {
                         PlayScreenResult.Exit -> {
                             rootBackStack.removeLastOrNull()

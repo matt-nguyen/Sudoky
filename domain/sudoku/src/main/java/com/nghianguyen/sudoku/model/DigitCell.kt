@@ -7,6 +7,7 @@ package com.nghianguyen.sudoku.model
  * @property state The contents of the cell and whether they are given or entered.
  * @property solution The correct value for this cell in the solved puzzle.
  * @property row The row index (0-8).
+ * @property notes Candidate digits in an empty cell.
  * @property col The column index (0-8).
  */
 data class DigitCell(
@@ -15,6 +16,7 @@ data class DigitCell(
     val solution: Int,
     val row: Row,
     val col: Column,
+    val notes: Set<Digit> = emptySet(),
 ) {
     /**
      * Checks if a digit has been entered in this cell.

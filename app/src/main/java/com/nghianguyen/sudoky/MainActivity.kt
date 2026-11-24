@@ -9,8 +9,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.nghianguyen.ui.theme.SudokyTheme
 import com.nghianguyen.feature.home.nav.Home
+import com.nghianguyen.ui.theme.SudokyTheme
 
 @ExperimentalCamera2Interop
 class MainActivity : ComponentActivity() {
@@ -23,11 +23,18 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+/**
+ * Displays a greeting for [name].
+ *
+ * @param name The name in the greeting.
+ * @param modifier Modifier applied to the greeting text.
+ */
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
     Text(text = "Hello $name!", modifier = modifier)
 }
 
+/** Previews the greeting with the app theme. */
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {

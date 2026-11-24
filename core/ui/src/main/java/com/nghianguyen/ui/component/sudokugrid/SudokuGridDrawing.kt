@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
+import com.nghianguyen.sudoku.model.BOX_SIZE
 
 /** Draws cell backgrounds, grid lines, digits, and selection in that order. */
 internal fun DrawScope.drawSudokuGrid(
@@ -42,6 +43,7 @@ internal fun DrawScope.drawSudokuGrid(
         style = style.wrongDigitTextStyle,
         textMeasurer = textMeasurer,
     )
+    drawNotes(state.noteItems, geometry, style.enteredDigitTextStyle, textMeasurer)
     selectedCell?.let { (row, col) ->
         drawSelectedCell(
             row = row,
@@ -122,4 +124,24 @@ private fun DrawScope.drawSelectedCell(
         size = Size(side, side),
         style = Stroke(width = SGDrawingConstants.SELECTION_STROKE_WIDTH),
     )
+}
+
+private fun DrawScope.drawNotes(
+    items: List<DigitCellItem>,
+    geometry: SudokuGridGeometry,
+    style: TextStyle,
+    textMeasurer: TextMeasurer,
+) {
+    val slotSize = geometry.cellSize / BOX_SIZE
+    val noteStyle = style.copy(fontSize = (slotSize * 0.75f).toSp())
+    items.forEach { (digit, row, col) ->
+        val slot = digit - 1
+        val centerX = geometry.cellStart(col) + (slot % BOX_SIZE + 0.5f) * slotSize
+        val centerY = geometry.cellStart(row) + (slot / BOX_SIZE + 0.5f) * slotSize
+        val text = textMeasurer.measure(digit.toString(), noteStyle)
+        drawText(
+            textLayoutResult = text,
+            topLeft = Offset(centerX - text.size.width / 2f, centerY - text.size.height / 2f),
+        )
+    }
 }
