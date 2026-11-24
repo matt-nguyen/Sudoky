@@ -11,6 +11,7 @@ import com.nghianguyen.sudoku.EnterSudokuDigitUseCase
 import com.nghianguyen.sudoku.SudokuGameRepository
 import com.nghianguyen.sudoku.model.CellState
 import com.nghianguyen.sudoku.model.DigitCell
+import com.nghianguyen.sudoku.model.EMPTY_CELL_VALUE
 import com.nghianguyen.ui.component.sudokugrid.DigitCellItem
 import com.nghianguyen.ui.component.sudokugrid.SudokuGridState
 import com.nghianguyen.ui.component.sudokugrid.toDigitCellItem
@@ -70,7 +71,7 @@ class PlayViewModel(
         launch {
             for (entry in digitEntries) {
                 val result =
-                    if (entry.notesMode) {
+                    if (entry.notesMode && entry.digit != EMPTY_CELL_VALUE) {
                         editSudokuNotes(gameId, entry.digit, entry.row, entry.col)
                     } else {
                         enterSudokuDigit(gameId, entry.digit, entry.row, entry.col)

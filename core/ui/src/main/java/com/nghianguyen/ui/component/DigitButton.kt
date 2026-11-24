@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
  * @param text The digit or text to display on the button.
  * @param onClick Callback for when the button is clicked.
  * @param modifier The modifier to be applied to the button.
+ * @param enabled Whether the button accepts input.
  */
 @Composable
 fun DigitButton(
@@ -24,6 +25,26 @@ fun DigitButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+) {
+    DigitButton(onClick = onClick, modifier = modifier, enabled = enabled) {
+        Text(text = text, style = MaterialTheme.typography.labelLarge)
+    }
+}
+
+/**
+ * A keypad button with custom content.
+ *
+ * @param onClick Callback for button activation.
+ * @param modifier Modifier applied to the button.
+ * @param enabled Whether the button accepts input.
+ * @param content The label or icon to display.
+ */
+@Composable
+fun DigitButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    content: @Composable () -> Unit,
 ) {
     OutlinedButton(
         onClick = onClick,
@@ -38,6 +59,6 @@ fun DigitButton(
             ),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
     ) {
-        Text(text = text, style = MaterialTheme.typography.labelLarge)
+        content()
     }
 }

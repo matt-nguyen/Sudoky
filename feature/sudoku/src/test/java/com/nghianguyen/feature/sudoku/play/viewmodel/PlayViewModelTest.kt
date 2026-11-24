@@ -11,6 +11,7 @@ import com.nghianguyen.sudoku.SudokuGameRepository
 import com.nghianguyen.sudoku.model.CellState
 import com.nghianguyen.sudoku.model.Column
 import com.nghianguyen.sudoku.model.DigitCell
+import com.nghianguyen.sudoku.model.EMPTY_CELL_VALUE
 import com.nghianguyen.sudoku.model.Row
 import com.nghianguyen.sudoku.model.SudokuGame
 import com.nghianguyen.ui.component.sudokugrid.DigitCellItem
@@ -70,6 +71,18 @@ class PlayViewModelTest {
                 assertFalse(state.notesMode)
                 assertEquals(listOf(DigitCellItem(2, 0, 0)), state.sudokuGridState.noteItems)
                 assertEquals(listOf(DigitCellItem(7, 0, 1)), state.sudokuGridState.correctItems)
+
+                viewModel.handleAction(PlayAction.OnCellSelected(0, 0))
+                viewModel.handleAction(PlayAction.OnDigitEntered(EMPTY_CELL_VALUE))
+                viewModel.handleAction(PlayAction.OnCellSelected(0, 1))
+                viewModel.handleAction(PlayAction.OnNotesModeToggled)
+                viewModel.handleAction(PlayAction.OnDigitEntered(EMPTY_CELL_VALUE))
+                runCurrent()
+
+                val cleared = viewModel.uiState.value
+                assertTrue(cleared.notesMode)
+                assertTrue(cleared.sudokuGridState.noteItems.isEmpty())
+                assertTrue(cleared.sudokuGridState.correctItems.isEmpty())
             } finally {
                 viewModel.viewModelScope.cancel()
             }

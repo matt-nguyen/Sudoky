@@ -1,5 +1,7 @@
 <resources>
-    <string name="play_notes">Notes</string>
+    <string name="play_notes">Notes mode</string>
+    <string name="play_digits_mode">Entering digits</string>
+    <string name="play_notes_mode">Entering notes</string>
     <string name="play_selected_cell">Row %1$d, column %2$d</string>
     <string name="play_selected_cell_notes">Row %1$d, column %2$d, notes %3$s</string>
 </resources>

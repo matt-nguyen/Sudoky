@@ -1,10 +1,16 @@
 package com.nghianguyen.sudoky
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
-import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertIsOff
+import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -26,14 +32,22 @@ class PlayContentTest {
     @Test
     fun notesMode_whenSelectionHasNotes_exposesStateAndDispatchesKeypadActions() {
         val actions = mutableListOf<PlayAction>()
+        var notesMode by mutableStateOf(true)
         val state =
             PlayScreenState(
                 sudokuGridState = SudokuGridState(noteItems = listOf(DigitCellItem(7, 0, 1))),
                 selectedCell = 0 to 1,
-                notesMode = true,
             )
         composeRule.setContent {
-            MaterialTheme { PlayContent(state = state, onAction = { actions.add(it) }) }
+            MaterialTheme {
+                PlayContent(
+                    state = state.copy(notesMode = notesMode),
+                    onAction = {
+                        actions.add(it)
+                        if (it == PlayAction.OnNotesModeToggled) notesMode = !notesMode
+                    },
+                )
+            }
         }
 
         val selection =
@@ -42,7 +56,25 @@ class PlayContentTest {
                 "Row 1, column 2, notes 7",
             )
         composeRule.onNode(selection).assertExists()
-        composeRule.onNodeWithText("Notes").performScrollTo().assertIsSelected().performClick()
+        val modeKey = composeRule.onNodeWithContentDescription("Notes mode")
+        modeKey
+            .performScrollTo()
+            .assertIsOn()
+            .assert(
+                SemanticsMatcher.expectValue(
+                    SemanticsProperties.StateDescription,
+                    "Entering notes",
+                ),
+            )
+            .performClick()
+        modeKey
+            .assertIsOff()
+            .assert(
+                SemanticsMatcher.expectValue(
+                    SemanticsProperties.StateDescription,
+                    "Entering digits",
+                ),
+            )
         composeRule.onNodeWithText("2").performScrollTo().performClick()
         composeRule.onNodeWithText("Clear").performScrollTo().performClick()
         composeRule.runOnIdle {

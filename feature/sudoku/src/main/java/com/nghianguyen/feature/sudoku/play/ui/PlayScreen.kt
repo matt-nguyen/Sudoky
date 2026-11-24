@@ -9,20 +9,28 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.FilterChip
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.EditNote
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.state.ToggleableState
 import com.nghianguyen.feature.sudoku.R
 import com.nghianguyen.feature.sudoku.play.viewmodel.PlayAction
 import com.nghianguyen.feature.sudoku.play.viewmodel.PlayEvent
 import com.nghianguyen.feature.sudoku.play.viewmodel.PlayScreenState
+import com.nghianguyen.ui.component.DigitButton
 import com.nghianguyen.ui.component.DigitKeypad
 import com.nghianguyen.ui.component.sudokugrid.SudokuGrid
 import com.nghianguyen.ui.theme.LocalSpacing
@@ -124,14 +132,41 @@ fun PlayContent(
             selection = selection,
             onCellSelected = { row, col -> onAction(PlayAction.OnCellSelected(row, col)) },
         )
-        FilterChip(
-            selected = state.notesMode,
-            onClick = { onAction(PlayAction.OnNotesModeToggled) },
-            label = { Text(stringResource(R.string.play_notes)) },
-        )
         DigitKeypad(
             onDigitEntered = { digit -> onAction(PlayAction.OnDigitEntered(digit)) },
             enabled = selection != null && !state.showFinishedDialog,
+            extraKey = { keyModifier ->
+                NotesModeKey(
+                    notesMode = state.notesMode,
+                    onToggle = { onAction(PlayAction.OnNotesModeToggled) },
+                    modifier = keyModifier,
+                )
+            },
+        )
+    }
+}
+
+@Composable
+private fun NotesModeKey(notesMode: Boolean, onToggle: () -> Unit, modifier: Modifier = Modifier) {
+    val label = stringResource(R.string.play_notes)
+    val mode =
+        stringResource(
+            if (notesMode) R.string.play_notes_mode else R.string.play_digits_mode,
+        )
+
+    DigitButton(
+        onClick = onToggle,
+        modifier =
+            modifier.semantics {
+                role = Role.Switch
+                contentDescription = label
+                stateDescription = mode
+                toggleableState = ToggleableState(notesMode)
+            },
+    ) {
+        Icon(
+            imageVector = if (notesMode) Icons.Outlined.EditNote else Icons.Outlined.Edit,
+            contentDescription = null,
         )
     }
 }

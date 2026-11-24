@@ -22,15 +22,17 @@ data class SudokuGame(val id: Long, val cells: List<DigitCell>) {
         return cells.size == TOTAL_CELLS && cells.all { it.isCorrect() }
     }
 
-    /** Enters an answer or clears an existing answer when [digit] is zero. */
+    /** Enters an answer or clears all editable cell contents when [digit] is zero. */
     fun setDigit(digit: Int, row: Int, col: Int): Result<SudokuGame, SudokuGameError> =
         editCell(digit, row, col) { target ->
             if (digit == EMPTY_CELL_VALUE) {
-                if (target.state == CellState.Empty) return@editCell this
+                if (target.state == CellState.Empty && target.notes.isEmpty()) return@editCell this
                 return@editCell copy(
                     cells =
                         cells.map { cell ->
-                            if (cell === target) cell.copy(state = CellState.Empty) else cell
+                            if (cell === target)
+                                cell.copy(state = CellState.Empty, notes = emptySet())
+                            else cell
                         },
                 )
             }
