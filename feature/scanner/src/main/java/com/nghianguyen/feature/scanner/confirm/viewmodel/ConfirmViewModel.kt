@@ -2,12 +2,11 @@ package com.nghianguyen.feature.scanner.confirm.viewmodel
 
 import android.util.Log
 import com.github.michaelbull.result.onErr
-import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onOk
-import com.github.michaelbull.result.onSuccess
 import com.nghianguyen.feature.viewmodel.BaseViewModel
 import com.nghianguyen.sudoku.CreateSudokuGameUseCase
 import com.nghianguyen.sudoku.PrepareScannedSudokuUseCase
+import com.nghianguyen.sudoku.PreparedSudoku
 import com.nghianguyen.sudoku.model.CellState
 import com.nghianguyen.sudoku.model.Digit
 import com.nghianguyen.sudoku.model.DigitCell
@@ -15,8 +14,6 @@ import com.nghianguyen.sudoku.model.EMPTY_CELL_VALUE
 import com.nghianguyen.sudoku.model.MAX_DIGIT
 import com.nghianguyen.sudoku.model.ScannedDigitCell
 import com.nghianguyen.sudoku.model.digit
-import com.nghianguyen.ui.component.sudokugrid.SudokuGridState
-import com.nghianguyen.ui.component.sudokugrid.toDigitCellItems
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -39,7 +36,7 @@ class ConfirmViewModel(
     private var stateBeforeEditing: ConfirmScreenState? = null
 
     private val _uiState =
-        MutableStateFlow(ConfirmScreenState(emptyList(), SudokuGridState(), false))
+        MutableStateFlow(ConfirmScreenState(digits = emptyList()))
     val uiState = _uiState.asStateFlow()
 
     /**
@@ -51,25 +48,23 @@ class ConfirmViewModel(
     fun prepareScannedSudoku(scannedDigits: List<ScannedDigitCell>) {
         stateBeforeEditing = null
         _uiState.value =
-            ConfirmScreenState(emptyList(), SudokuGridState(), false, isSubmitting = true)
+            ConfirmScreenState(digits = emptyList(), isSubmitting = true)
         launch {
             withContext(Dispatchers.Default) { prepareScannedSudokuUseCase(scannedDigits) }
-                .onOk { puzzle -> showPuzzle(puzzle.cells, isValid = true) }
+                .onOk { puzzle -> showPuzzle(puzzle.cells, ValidationStatus.Valid) }
                 .onErr { failure ->
                     Log.e(logTag, "Puzzle preparation failed", failure.cause)
-                    showPuzzle(failure.cells, isValid = false)
+                    showPuzzle(failure.cells, ValidationStatus.Invalid)
                 }
             _uiState.update { it.copy(isSubmitting = false) }
         }
     }
 
-    private fun showPuzzle(digits: List<DigitCell>, isValid: Boolean) {
-        val givenItems = digits.filter { it.state is CellState.Given }.toDigitCellItems()
+    private fun showPuzzle(digits: List<DigitCell>, validationStatus: ValidationStatus) {
         _uiState.update { state ->
             state.copy(
                 digits = digits,
-                sudokuGridState = state.sudokuGridState.copy(givenItems = givenItems),
-                isValid = isValid,
+                validationStatus = validationStatus,
             )
         }
     }
@@ -78,24 +73,28 @@ class ConfirmViewModel(
         Log.d(logTag, "handleAction: $action")
         if (_uiState.value.isSubmitting) return
         when (action) {
-            ConfirmAction.Modify -> {
-                if (!_uiState.value.isEditing) {
-                    stateBeforeEditing = _uiState.value
-                    _uiState.update { it.copy(isEditing = true) }
-                }
-            }
-            ConfirmAction.Back -> {
-                stateBeforeEditing?.let { _uiState.value = it }
-                stateBeforeEditing = null
-            }
-            is ConfirmAction.SelectCell -> {
-                if (_uiState.value.isEditing) {
-                    _uiState.update { it.copy(selectedCell = action.row to action.col) }
-                }
-            }
+            ConfirmAction.Modify -> startEditing()
+            ConfirmAction.Back -> cancelEditing()
+            is ConfirmAction.SelectCell -> selectCell(action.row, action.col)
             is ConfirmAction.EnterDigit -> enterDigit(action.digit)
             ConfirmAction.Confirm -> confirmSudoku()
         }
+    }
+
+    private fun startEditing() {
+        if (_uiState.value.isEditing) return
+        stateBeforeEditing = _uiState.value
+        _uiState.update { it.copy(isEditing = true) }
+    }
+
+    private fun cancelEditing() {
+        stateBeforeEditing?.let { _uiState.value = it }
+        stateBeforeEditing = null
+    }
+
+    private fun selectCell(row: Int, col: Int) {
+        if (!_uiState.value.isEditing) return
+        _uiState.update { it.copy(selectedCell = row to col) }
     }
 
     private fun enterDigit(digit: Int) {
@@ -113,7 +112,7 @@ class ConfirmViewModel(
                     )
                 } else cell
             }
-        showPuzzle(digits, isValid = false)
+        showPuzzle(digits, ValidationStatus.Unchecked)
         _uiState.update { it.copy(warning = null) }
     }
 
@@ -128,30 +127,34 @@ class ConfirmViewModel(
         _uiState.update { it.copy(isSubmitting = true, warning = null) }
         launch {
             withContext(Dispatchers.Default) { prepareScannedSudokuUseCase(scannedDigits) }
-                .onOk { puzzle ->
-                    createSudokuGame(puzzle)
-                        .onSuccess { sendEvent(ConfirmEvent.ConfirmedGame(it)) }
-                        .onFailure {
-                            Log.d(logTag, "Error: $it")
-                            _uiState.update { state ->
-                                state.copy(
-                                    isSubmitting = false,
-                                    warning = "Unable to save the game. Please try again.",
-                                )
-                            }
-                        }
+                .onOk { puzzle -> savePreparedPuzzle(puzzle) }
+                .onErr { showValidationFailure() }
+        }
+    }
+
+    private suspend fun savePreparedPuzzle(puzzle: PreparedSudoku) {
+        createSudokuGame(puzzle)
+            .onOk { sendEvent(ConfirmEvent.ConfirmedGame(it)) }
+            .onErr { failure ->
+                Log.d(logTag, "Error: $failure")
+                _uiState.update { state ->
+                    state.copy(
+                        isSubmitting = false,
+                        warning = "Unable to save the game. Please try again.",
+                    )
                 }
-                .onErr {
-                    _uiState.update { state ->
-                        state.copy(
-                            isValid = false,
-                            isEditing = true,
-                            isSubmitting = false,
-                            warning =
-                                "This puzzle contains conflicting digits or has no solution. Please check the grid.",
-                        )
-                    }
-                }
+            }
+    }
+
+    private fun showValidationFailure() {
+        _uiState.update { state ->
+            state.copy(
+                validationStatus = ValidationStatus.Invalid,
+                isEditing = true,
+                isSubmitting = false,
+                warning =
+                    "This puzzle contains conflicting digits or has no solution. Please check the grid.",
+            )
         }
     }
 }

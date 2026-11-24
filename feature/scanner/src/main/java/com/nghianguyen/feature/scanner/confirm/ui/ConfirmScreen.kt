@@ -21,6 +21,7 @@ import com.nghianguyen.feature.scanner.confirm.ui.ConfirmScreenResult.ConfirmedG
 import com.nghianguyen.feature.scanner.confirm.viewmodel.ConfirmAction
 import com.nghianguyen.feature.scanner.confirm.viewmodel.ConfirmEvent
 import com.nghianguyen.feature.scanner.confirm.viewmodel.ConfirmScreenState
+import com.nghianguyen.feature.scanner.confirm.viewmodel.ValidationStatus
 import com.nghianguyen.ui.component.sudokugrid.SudokuGrid
 import com.nghianguyen.ui.theme.LocalSpacing
 import kotlinx.coroutines.flow.SharedFlow
@@ -105,7 +106,11 @@ fun ConfirmScreen(
 private fun ConfirmWarning(state: ConfirmScreenState) {
     val warning =
         state.warning
-            ?: if (!state.isValid && !state.isEditing && !state.isSubmitting) {
+            ?: if (
+                state.validationStatus == ValidationStatus.Invalid &&
+                    !state.isEditing &&
+                    !state.isSubmitting
+            ) {
                 "Invalid Sudoku grid. Please modify or rescan."
             } else null
     if (warning != null) {
