@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import com.nghianguyen.feature.sudoku.play.viewmodel.PlayAction
 import com.nghianguyen.feature.sudoku.play.viewmodel.PlayEvent
 import com.nghianguyen.feature.sudoku.play.viewmodel.PlayScreenState
+import com.nghianguyen.ui.component.DigitKeypad
 import com.nghianguyen.ui.component.sudokugrid.SudokuGrid
 import com.nghianguyen.ui.theme.LocalSpacing
 import kotlinx.coroutines.flow.SharedFlow
@@ -93,6 +94,10 @@ fun PlayContent(state: PlayScreenState, onAction: (PlayAction) -> Unit) {
             selectedRow = row
             selectedCol = col
         }
-        DigitKeypad(selectedRow = selectedRow, selectedCol = selectedCol, onAction = onAction)
+        DigitKeypad(
+            onDigitEntered = { digit ->
+                onAction(PlayAction.OnDigitEntered(digit, selectedRow, selectedCol))
+            },
+        )
     }
 }

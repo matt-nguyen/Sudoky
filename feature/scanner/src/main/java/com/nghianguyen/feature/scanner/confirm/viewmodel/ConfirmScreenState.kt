@@ -14,4 +14,8 @@ data class ConfirmScreenState(
     val digits: List<DigitCell>,
     val sudokuGridState: SudokuGridState,
     val isValid: Boolean,
+    val isEditing: Boolean = false,
+    val selectedCell: Pair<Int, Int>? = null,
+    val warning: String? = null,
+    val isSubmitting: Boolean = false,
 )

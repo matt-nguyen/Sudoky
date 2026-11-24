@@ -30,6 +30,20 @@ class SudokuSolver {
                 board[cell.row.value][cell.col.value] = cell.state.digit?.value ?: EMPTY_CELL_VALUE
             }
 
+            // Check existing clues before filling empty cells.
+            for (row in 0 until GRID_SIZE) {
+                for (col in 0 until GRID_SIZE) {
+                    val digit = board[row][col]
+                    if (digit != EMPTY_CELL_VALUE) {
+                        board[row][col] = EMPTY_CELL_VALUE
+                        require(isValid(board, row, col, digit)) {
+                            "Sudoku puzzle contains conflicting digits"
+                        }
+                        board[row][col] = digit
+                    }
+                }
+            }
+
             // Solve the puzzle
             val solved = solve(board)
             if (!solved) {
