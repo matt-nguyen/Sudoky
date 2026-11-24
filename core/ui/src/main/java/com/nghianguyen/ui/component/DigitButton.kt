@@ -1,6 +1,7 @@
-package com.nghianguyen.feature.sudoku.play.ui
+package com.nghianguyen.ui.component
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -18,11 +19,18 @@ import androidx.compose.ui.unit.dp
  * @param modifier The modifier to be applied to the button.
  */
 @Composable
-fun DigitButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun DigitButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+) {
     OutlinedButton(
         onClick = onClick,
+        enabled = enabled,
         modifier = modifier,
         shape = RoundedCornerShape(8.dp),
+        contentPadding = PaddingValues(horizontal = 4.dp),
         colors =
             ButtonDefaults.outlinedButtonColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant,

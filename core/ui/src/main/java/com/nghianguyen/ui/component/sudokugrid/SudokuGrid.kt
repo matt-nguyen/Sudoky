@@ -20,10 +20,15 @@ import androidx.compose.ui.text.rememberTextMeasurer
  * and incorrectly entered digits with different visual styles. It also supports cell selection.
  *
  * @param state The current state of the grid, including the digits to display.
+ * @param modifier The modifier applied to the grid.
  * @param onCellSelected Callback triggered when a cell is tapped, providing the (row, col) indices.
  */
 @Composable
-fun SudokuGrid(state: SudokuGridState, onCellSelected: ((Int, Int) -> Unit)? = null) {
+fun SudokuGrid(
+    state: SudokuGridState,
+    modifier: Modifier = Modifier,
+    onCellSelected: ((Int, Int) -> Unit)? = null,
+) {
     // Cache digits 1-9 for both the bold given style and the regular entered styles.
     val textMeasurer = rememberTextMeasurer(cacheSize = SGDrawingConstants.GRID_SIZE * 2)
     val style = rememberSudokuGridStyle()
@@ -33,7 +38,7 @@ fun SudokuGrid(state: SudokuGridState, onCellSelected: ((Int, Int) -> Unit)? = n
 
     Canvas(
         modifier =
-            Modifier.fillMaxWidth()
+            modifier.fillMaxWidth()
                 .aspectRatio(1f)
                 .background(style.backgroundColor)
                 .pointerInput(selectionEnabled) {
