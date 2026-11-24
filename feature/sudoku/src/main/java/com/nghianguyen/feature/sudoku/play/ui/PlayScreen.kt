@@ -126,7 +126,7 @@ fun PlayContent(
         )
         FilterChip(
             selected = state.notesMode,
-            onClick = { onAction(PlayAction.OnNotesModeChanged(!state.notesMode)) },
+            onClick = { onAction(PlayAction.OnNotesModeToggled) },
             label = { Text(stringResource(R.string.play_notes)) },
         )
         DigitKeypad(

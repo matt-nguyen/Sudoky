@@ -9,7 +9,7 @@ sealed interface PlayAction {
     data class OnCellSelected(val row: Int, val col: Int) : PlayAction
 
     /** Changes whether the keypad enters notes. */
-    data class OnNotesModeChanged(val enabled: Boolean) : PlayAction
+    data object OnNotesModeToggled : PlayAction
 
     /** Triggered when the user chooses to delete the current game. */
     data object OnDeleteGame : PlayAction

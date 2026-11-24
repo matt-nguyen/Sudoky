@@ -92,7 +92,7 @@ class PlayViewModel(
                 enqueueKeypadEdit(action.digit)
             }
             is PlayAction.OnCellSelected -> selectCell(action.row, action.col)
-            is PlayAction.OnNotesModeChanged -> changeNotesMode(action.enabled)
+            PlayAction.OnNotesModeToggled -> toggleNotesMode()
             PlayAction.OnDeleteGame -> {
                 deleteGameAndExit()
             }
@@ -103,8 +103,8 @@ class PlayViewModel(
         _uiState.update { it.copy(selectedCell = row to col) }
     }
 
-    private fun changeNotesMode(enabled: Boolean) {
-        _uiState.update { it.copy(notesMode = enabled) }
+    private fun toggleNotesMode() {
+        _uiState.update { it.copy(notesMode = !it.notesMode) }
     }
 
     private fun enqueueKeypadEdit(digit: Int) {

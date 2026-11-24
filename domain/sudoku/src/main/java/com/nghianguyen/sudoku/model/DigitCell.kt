@@ -18,6 +18,10 @@ data class DigitCell(
     val col: Column,
     val notes: Set<Digit> = emptySet(),
 ) {
+    init {
+        require(state == CellState.Empty || notes.isEmpty()) { "Only empty cells can have notes" }
+    }
+
     /**
      * Checks if a digit has been entered in this cell.
      *

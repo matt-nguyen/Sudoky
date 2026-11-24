@@ -48,7 +48,7 @@ class PlayContentTest {
         composeRule.runOnIdle {
             assertEquals(
                 listOf(
-                    PlayAction.OnNotesModeChanged(false),
+                    PlayAction.OnNotesModeToggled,
                     PlayAction.OnDigitEntered(2),
                     PlayAction.OnDigitEntered(0),
                 ),

@@ -51,14 +51,16 @@ class PlayViewModelTest {
                 assertFalse(repository.started.isCompleted)
 
                 viewModel.handleAction(PlayAction.OnCellSelected(0, 0))
-                viewModel.handleAction(PlayAction.OnNotesModeChanged(true))
+                viewModel.handleAction(PlayAction.OnNotesModeToggled)
                 viewModel.handleAction(PlayAction.OnDigitEntered(2))
                 runCurrent()
                 assertTrue(repository.started.isCompleted)
 
                 viewModel.handleAction(PlayAction.OnDigitEntered(7))
                 viewModel.handleAction(PlayAction.OnCellSelected(0, 1))
-                viewModel.handleAction(PlayAction.OnNotesModeChanged(false))
+                viewModel.handleAction(PlayAction.OnNotesModeToggled)
+                viewModel.handleAction(PlayAction.OnNotesModeToggled)
+                viewModel.handleAction(PlayAction.OnNotesModeToggled)
                 viewModel.handleAction(PlayAction.OnDigitEntered(7))
                 repository.release.complete(Unit)
                 runCurrent()
